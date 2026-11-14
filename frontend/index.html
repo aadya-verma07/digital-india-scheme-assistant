@@ -3,21 +3,16 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Digital India Scheme Assistant</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Mukta:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <title>Scheme Assistant · Digital India</title>
   <link rel="stylesheet" href="/static/styles.css" />
 </head>
 <body>
+  <div class="flag" aria-hidden="true"><i></i><i></i><i></i></div>
   <header class="topbar">
     <div class="wrap topbar-inner">
       <a class="brand" href="#find">
-        <span class="brand-mark" aria-hidden="true"></span>
-        <span class="brand-text">
-          <strong data-i18n="brand">Scheme Assistant</strong>
-          <small data-i18n="brand_sub">Digital India citizen services</small>
-        </span>
+        <svg class="chakra" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="17" fill="none" stroke="currentColor" stroke-width="2.2"/><circle cx="20" cy="20" r="3" fill="currentColor"/><g stroke="currentColor" stroke-width="1.1" id="spokes"></g></svg>
+        <span class="brand-text"><strong data-i18n="brand">Scheme Assistant</strong><small data-i18n="brand_sub">Digital India citizen services</small></span>
       </a>
       <nav class="tabs" aria-label="Sections">
         <button class="tab is-active" data-view="find" data-i18n="tab_find">Find schemes</button>
@@ -27,130 +22,49 @@
       </nav>
       <button id="lang-toggle" class="lang-toggle" aria-label="Switch language">हिंदी</button>
     </div>
-    <div class="tricolor" aria-hidden="true"><i></i><i></i><i></i></div>
   </header>
 
   <main>
     <!-- FIND -->
     <section id="view-find" class="view">
-      <div class="hero">
-        <div class="wrap hero-inner">
-          <div class="hero-text">
-            <h1 data-i18n="hero_title">Find the government schemes made for you</h1>
-            <p data-i18n="hero_sub">Tell us about yourself in your own words. We check you against every scheme's conditions and show what you can get, what to keep ready, and where to apply.</p>
-            <ul class="hero-pills">
-              <li data-i18n="pill_1">14 central schemes</li>
-              <li data-i18n="pill_2">English and हिंदी</li>
-              <li data-i18n="pill_3">Speak or type</li>
-            </ul>
-          </div>
-          <div class="describe">
-            <label for="describe-input" class="describe-label" data-i18n="describe_label">Describe yourself in a sentence</label>
-            <div class="describe-row">
-              <textarea id="describe-input" rows="3" data-i18n-ph="describe_ph" placeholder="e.g. I'm a 45 year old farmer from Bihar, we earn about 1 lakh a year and have a BPL card"></textarea>
-              <button type="button" class="icon-btn mic big" id="describe-mic" aria-label="Speak" title="Speak">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3Zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-2.08A7 7 0 0 0 19 12h-2Z"/></svg>
-              </button>
-            </div>
-            <div class="examples" id="examples" aria-label="Examples"></div>
-            <button type="button" class="btn btn-primary btn-wide" id="describe-go" data-i18n="describe_go">Find my schemes</button>
-            <p class="describe-note" id="describe-note" aria-live="polite"></p>
+      <div class="wrap hero" id="hero">
+        <h1 data-i18n="hero_title">Which government schemes are meant for you?</h1>
+        <p class="hero-sub" data-i18n="hero_sub">Tell us about yourself in your own words. We check every scheme's conditions and show what you could receive, what to keep ready, and where to apply.</p>
+
+        <div class="composer">
+          <label for="describe-input" class="sr-only" data-i18n="describe_label">Describe yourself</label>
+          <textarea id="describe-input" rows="3" data-i18n-ph="describe_ph" placeholder="I'm a 45 year old farmer from Bihar, we earn about 1 lakh a year and have a BPL card"></textarea>
+          <div class="composer-bar">
+            <button type="button" class="mic" id="describe-mic" aria-label="Speak instead of typing" title="Speak">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3Zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-2.08A7 7 0 0 0 19 12h-2Z"/></svg>
+              <span data-i18n="speak">Speak</span>
+            </button>
+            <button type="button" class="btn btn-primary" id="describe-go" data-i18n="describe_go">Find my schemes</button>
           </div>
         </div>
+        <p class="describe-note" id="describe-note" aria-live="polite"></p>
+        <div class="examples" id="examples"></div>
+        <button type="button" class="link-btn" id="open-form" data-i18n="open_form">Prefer a form? Answer step by step</button>
       </div>
 
-      <div class="wrap find-grid">
-        <form id="profile-form" class="panel profile" novalidate>
-          <h2 data-i18n="find_title">Or answer step by step</h2>
-          <p class="form-note" data-i18n="form_note">Skip anything you'd rather not share. Results update as you go.</p>
+      <div class="wrap how" id="how">
+        <ol class="how-steps">
+          <li><b data-i18n="how1_t">Describe yourself</b><span data-i18n="how1_b">Type or speak a sentence, in English or Hindi. Skip anything you'd rather not share.</span></li>
+          <li><b data-i18n="how2_t">Every condition is checked</b><span data-i18n="how2_b">Each scheme gets a strip with one block per condition.</span>
+            <span class="legend-strip"><i class="seg-bar met"></i><small data-i18n="lg_met">you meet it</small><i class="seg-bar not_met"></i><small data-i18n="lg_not">you don't</small><i class="seg-bar"></i><small data-i18n="lg_unk">not answered yet</small></span></li>
+          <li><b data-i18n="how3_t">Get your passbook</b><span data-i18n="how3_b">What you could receive, the documents to collect and where to apply, as a report you can save.</span></li>
+        </ol>
+      </div>
 
-          <fieldset>
-            <legend data-i18n="basics">Basics</legend>
-            <div class="row">
-              <label><span data-i18n="f_name">Name (optional)</span><input name="name" autocomplete="given-name" /></label>
-              <label><span data-i18n="f_age">Age</span><input name="age" type="number" min="0" max="120" inputmode="numeric" /></label>
-            </div>
-            <div class="row">
-              <label><span data-i18n="f_gender">Gender</span>
-                <select name="gender"><option value="" data-i18n="choose">Choose</option><option value="female" data-i18n="o_female">Female</option><option value="male" data-i18n="o_male">Male</option><option value="other" data-i18n="o_other">Other</option></select>
-              </label>
-              <label><span data-i18n="f_area">Where you live</span>
-                <select name="area"><option value="" data-i18n="choose">Choose</option><option value="rural" data-i18n="o_rural">Village / rural</option><option value="urban" data-i18n="o_urban">Town or city</option></select>
-              </label>
-            </div>
-            <label><span data-i18n="f_state">State</span>
-              <select name="state" id="state-select"><option value="" data-i18n="choose">Choose</option></select>
-            </label>
-          </fieldset>
-
-          <fieldset>
-            <legend data-i18n="background">Background</legend>
-            <div class="row">
-              <label><span data-i18n="f_category">Social category</span>
-                <select name="category"><option value="" data-i18n="choose">Choose</option><option value="General" data-i18n="o_general">General</option><option value="OBC">OBC</option><option value="SC">SC</option><option value="ST">ST</option></select>
-              </label>
-              <label><span data-i18n="f_income">Annual family income (₹)</span>
-                <input name="income" type="number" min="0" step="1000" inputmode="numeric" placeholder="180000" />
-              </label>
-            </div>
-            <div class="row">
-              <label><span data-i18n="f_occupation">What you do</span>
-                <select name="occupation">
-                  <option value="" data-i18n="choose">Choose</option>
-                  <option value="student" data-i18n="o_student">Student</option>
-                  <option value="farmer" data-i18n="o_farmer">Farmer</option>
-                  <option value="salaried" data-i18n="o_salaried">Salaried (private job)</option>
-                  <option value="govt_employee" data-i18n="o_govt">Government employee</option>
-                  <option value="self_employed" data-i18n="o_self">Own business / self-employed</option>
-                  <option value="artisan" data-i18n="o_artisan">Artisan or craftsperson</option>
-                  <option value="street_vendor" data-i18n="o_vendor">Street vendor</option>
-                  <option value="homemaker" data-i18n="o_home">Homemaker</option>
-                  <option value="unemployed" data-i18n="o_unemp">Looking for work</option>
-                  <option value="retired" data-i18n="o_retired">Retired</option>
-                </select>
-              </label>
-              <label><span data-i18n="f_education">Education</span>
-                <select name="education">
-                  <option value="" data-i18n="choose">Choose</option>
-                  <option value="none" data-i18n="o_none">No formal schooling</option>
-                  <option value="school" data-i18n="o_school">Up to Class 10</option>
-                  <option value="post_matric" data-i18n="o_pm">Class 11–12 / diploma</option>
-                  <option value="graduate" data-i18n="o_grad">Graduation</option>
-                  <option value="postgraduate" data-i18n="o_pg">Post-graduation</option>
-                </select>
-              </label>
-            </div>
-          </fieldset>
-
-          <fieldset>
-            <legend data-i18n="household">Your household</legend>
-            <div id="yesno"></div>
-          </fieldset>
-
-          <div class="form-actions">
-            <button type="submit" class="btn btn-primary" data-i18n="show_btn">Show my schemes</button>
-            <button type="button" class="btn btn-ghost" id="fill-demo" data-i18n="sample_btn">Sample profile</button>
-            <button type="reset" class="btn btn-text" data-i18n="clear_btn">Clear</button>
-          </div>
-        </form>
-
-        <div class="results" id="results-area" aria-live="polite">
-          <div id="results-empty" class="empty">
-            <div class="how">
-              <div class="how-step"><span class="how-num">1</span><div><b data-i18n="how1_t">Tell us about yourself</b><p data-i18n="how1_b">Describe yourself above, or answer the questions. Skip anything you like.</p></div></div>
-              <div class="how-step"><span class="how-num">2</span><div><b data-i18n="how2_t">See every condition checked</b><p data-i18n="how2_b">Each scheme gets a strip, one block per condition.</p>
-                <div class="legend-strip"><span class="seg-bar met"></span><small data-i18n="lg_met">you meet it</small><span class="seg-bar not_met"></span><small data-i18n="lg_not">you don't</small><span class="seg-bar"></span><small data-i18n="lg_unk">not answered yet</small></div></div></div>
-              <div class="how-step"><span class="how-num">3</span><div><b data-i18n="how3_t">Get your plan</b><p data-i18n="how3_b">What you could receive, the documents to collect, and where to apply, as a report you can save.</p></div></div>
-            </div>
-          </div>
-          <div id="results"></div>
-        </div>
+      <div class="wrap find-results" id="find-results" hidden>
+        <aside class="you" id="profile-summary" aria-label="Your details"></aside>
+        <div class="results" id="results-area" aria-live="polite"><div id="results"></div></div>
       </div>
     </section>
 
     <!-- ASK -->
     <section id="view-ask" class="view wrap" hidden>
-      <div class="chat panel">
+      <div class="chat">
         <div class="chat-head">
           <div>
             <h1 data-i18n="ask_title">Ask the assistant</h1>
@@ -164,10 +78,10 @@
         <div id="chat-log" class="chat-log" aria-live="polite"></div>
         <div id="quick-replies" class="quick-replies"></div>
         <form id="chat-form" class="chat-form">
-          <button type="button" class="icon-btn mic" id="chat-mic" aria-label="Speak your question" title="Speak">
+          <button type="button" class="mic round" id="chat-mic" aria-label="Speak your question" title="Speak">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3Zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-2.08A7 7 0 0 0 19 12h-2Z"/></svg>
           </button>
-          <input id="chat-input" autocomplete="off" data-i18n-ph="chat_ph" placeholder="e.g. I'm a 60 year old widow, which schemes can I get?" aria-label="Your question" />
+          <input id="chat-input" autocomplete="off" data-i18n-ph="chat_ph" placeholder="I'm a 60 year old widow, which schemes can I get?" aria-label="Your question" />
           <button class="btn btn-primary" type="submit" data-i18n="send">Send</button>
         </form>
       </div>
@@ -175,15 +89,15 @@
 
     <!-- BROWSE -->
     <section id="view-browse" class="view wrap" hidden>
-      <div class="browse-head">
-        <h1 data-i18n="browse_title">All schemes in this prototype</h1>
-        <input id="search" type="search" data-i18n-ph="search_ph" placeholder="Search by name or need, e.g. pension, housing" aria-label="Search schemes" />
+      <div class="page-head">
+        <h1 data-i18n="browse_title">All schemes</h1>
+        <input id="search" type="search" data-i18n-ph="search_ph" placeholder="Search by name or need, like pension or housing" aria-label="Search schemes" />
       </div>
       <div id="sector-chips" class="chips" role="group" aria-label="Filter by sector"></div>
       <div id="compare-bar" class="compare-bar" hidden>
         <span id="compare-count"></span>
         <button class="btn btn-primary btn-small" id="compare-go" data-i18n="compare_btn">Compare side by side</button>
-        <button class="btn btn-ghost btn-small" id="compare-clear" data-i18n="clear_btn">Clear</button>
+        <button class="btn btn-quiet btn-small" id="compare-clear" data-i18n="clear_btn">Clear</button>
       </div>
       <div id="compare-table"></div>
       <div id="browse-list" class="browse-list"></div>
@@ -191,24 +105,103 @@
 
     <!-- INSIGHTS -->
     <section id="view-insights" class="view wrap" hidden>
-      <h1 data-i18n="ins_title">Insights for administrators</h1>
-      <p class="lede" data-i18n="ins_lede">What citizens using the assistant need, computed live from every profile checked. Helps departments see which schemes are under-used and which conditions shut people out.</p>
+      <div class="page-head stacked">
+        <h1 data-i18n="ins_title">Insights for administrators</h1>
+        <p class="lede" data-i18n="ins_lede">What citizens using the assistant need, computed from every profile checked.</p>
+      </div>
       <div id="insights"></div>
     </section>
   </main>
 
-  <!-- DETAIL DRAWER -->
+  <!-- shared backdrop for side sheets -->
   <div id="drawer-backdrop" class="backdrop" hidden></div>
-  <aside id="drawer" class="drawer" role="dialog" aria-modal="true" aria-labelledby="drawer-title" hidden>
-    <button class="drawer-close" id="drawer-close" aria-label="Close details">×</button>
+
+  <!-- YOUR DETAILS (form) SHEET -->
+  <aside id="form-sheet" class="sheet sheet-left" role="dialog" aria-modal="true" aria-labelledby="form-title" hidden>
+    <div class="sheet-head">
+      <h2 id="form-title" data-i18n="find_title">Your details</h2>
+      <button class="sheet-close" id="form-close" aria-label="Close">×</button>
+    </div>
+    <form id="profile-form" class="sheet-body" novalidate>
+      <p class="form-note" data-i18n="form_note">Skip anything you'd rather not share. Results update as you go.</p>
+      <fieldset>
+        <legend data-i18n="basics">Basics</legend>
+        <div class="row">
+          <label><span data-i18n="f_name">Name (optional)</span><input name="name" autocomplete="given-name" /></label>
+          <label><span data-i18n="f_age">Age</span><input name="age" type="number" min="0" max="120" inputmode="numeric" /></label>
+        </div>
+        <div class="row">
+          <label><span data-i18n="f_gender">Gender</span>
+            <select name="gender"><option value="" data-i18n="choose">Choose</option><option value="female" data-i18n="o_female">Female</option><option value="male" data-i18n="o_male">Male</option><option value="other" data-i18n="o_other">Other</option></select>
+          </label>
+          <label><span data-i18n="f_area">Where you live</span>
+            <select name="area"><option value="" data-i18n="choose">Choose</option><option value="rural" data-i18n="o_rural">Village / rural</option><option value="urban" data-i18n="o_urban">Town or city</option></select>
+          </label>
+        </div>
+        <label><span data-i18n="f_state">State</span>
+          <select name="state" id="state-select"><option value="" data-i18n="choose">Choose</option></select>
+        </label>
+      </fieldset>
+      <fieldset>
+        <legend data-i18n="background">Background</legend>
+        <div class="row">
+          <label><span data-i18n="f_category">Social category</span>
+            <select name="category"><option value="" data-i18n="choose">Choose</option><option value="General" data-i18n="o_general">General</option><option value="OBC">OBC</option><option value="SC">SC</option><option value="ST">ST</option></select>
+          </label>
+          <label><span data-i18n="f_income">Annual family income (₹)</span>
+            <input name="income" type="number" min="0" step="1000" inputmode="numeric" placeholder="180000" />
+          </label>
+        </div>
+        <div class="row">
+          <label><span data-i18n="f_occupation">What you do</span>
+            <select name="occupation">
+              <option value="" data-i18n="choose">Choose</option>
+              <option value="student" data-i18n="o_student">Student</option>
+              <option value="farmer" data-i18n="o_farmer">Farmer</option>
+              <option value="salaried" data-i18n="o_salaried">Salaried (private job)</option>
+              <option value="govt_employee" data-i18n="o_govt">Government employee</option>
+              <option value="self_employed" data-i18n="o_self">Own business / self-employed</option>
+              <option value="artisan" data-i18n="o_artisan">Artisan or craftsperson</option>
+              <option value="street_vendor" data-i18n="o_vendor">Street vendor</option>
+              <option value="homemaker" data-i18n="o_home">Homemaker</option>
+              <option value="unemployed" data-i18n="o_unemp">Looking for work</option>
+              <option value="retired" data-i18n="o_retired">Retired</option>
+            </select>
+          </label>
+          <label><span data-i18n="f_education">Education</span>
+            <select name="education">
+              <option value="" data-i18n="choose">Choose</option>
+              <option value="none" data-i18n="o_none">No formal schooling</option>
+              <option value="school" data-i18n="o_school">Up to Class 10</option>
+              <option value="post_matric" data-i18n="o_pm">Class 11–12 / diploma</option>
+              <option value="graduate" data-i18n="o_grad">Graduation</option>
+              <option value="postgraduate" data-i18n="o_pg">Post-graduation</option>
+            </select>
+          </label>
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend data-i18n="household">Your household</legend>
+        <div id="yesno"></div>
+      </fieldset>
+      <div class="sheet-actions">
+        <button type="submit" class="btn btn-primary" data-i18n="show_btn">Show my schemes</button>
+        <button type="button" class="btn btn-quiet" id="fill-demo" data-i18n="sample_btn">Use a sample profile</button>
+        <button type="reset" class="btn btn-quiet" data-i18n="clear_btn">Clear</button>
+      </div>
+    </form>
+  </aside>
+
+  <!-- SCHEME DETAIL SHEET -->
+  <aside id="drawer" class="sheet" role="dialog" aria-modal="true" aria-labelledby="drawer-title" hidden>
+    <button class="sheet-close floating" id="drawer-close" aria-label="Close details">×</button>
     <div id="drawer-body"></div>
   </aside>
 
-  <!-- PRINTABLE REPORT -->
   <section id="report" class="report" aria-hidden="true"></section>
 
   <footer class="wrap foot" data-i18n="footer">
-    Academic prototype, Minor Project, Department of ECE, MAIT. Guidance only — final eligibility is decided by the issuing authority. Always confirm on the official website before applying.
+    Academic prototype, Minor Project, Department of ECE, MAIT. Guidance only. Final eligibility is decided by the issuing authority, so always confirm on the official website before applying.
   </footer>
 
   <script src="/static/app.js"></script>

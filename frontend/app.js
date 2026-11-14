@@ -10,24 +10,37 @@ const I18N = {
   brand: ["Scheme Assistant", "योजना सहायक"], brand_sub: ["Digital India citizen services", "डिजिटल इंडिया नागरिक सेवाएँ"],
   tab_find: ["Find schemes", "योजनाएँ खोजें"], tab_ask: ["Ask the assistant", "सहायक से पूछें"],
   tab_browse: ["All schemes", "सभी योजनाएँ"], tab_insights: ["Insights", "आँकड़े"],
-  find_title: ["Or answer step by step", "या एक-एक करके जवाब दें"],
+  find_title: ["Your details", "आपकी जानकारी"],
+  speak: ["Speak", "बोलें"], open_form: ["Prefer a form? Answer step by step", "फ़ॉर्म पसंद है? एक-एक करके जवाब दें"],
+  you_title: ["About you", "आपके बारे में"], edit_details: ["Edit details", "जानकारी बदलें"], start_over: ["Start over", "फिर से शुरू करें"],
+  gap_text: ["Answer {n} more {q} to check {m} more {s}.", "{n} और सवालों के जवाब देकर {m} और योजनाएँ जाँचें।"],
+  gap_btn: ["Answer now", "अभी जवाब दें"],
+  st_head_some: ["You appear to qualify for {n} schemes", "आप {n} योजनाओं के पात्र दिखते हैं"],
+  st_head_one: ["You appear to qualify for 1 scheme", "आप 1 योजना के पात्र दिखते हैं"],
+  st_head_none: ["No scheme is a clear match yet", "अभी कोई योजना पूरी तरह मेल नहीं खाती"],
+  st_sub_value: ["Together, this is what you could receive:", "कुल मिलाकर, आपको यह मिल सकता है:"],
+  st_sub_check: ["{n} more may apply once you answer a few questions.", "कुछ सवालों के जवाब देने पर {n} और योजनाएँ लागू हो सकती हैं।"],
+  st_sub_none: ["Answer a few more questions and the list below will firm up.", "कुछ और सवालों के जवाब दें, नीचे की सूची साफ़ हो जाएगी।"],
+  l_cash: ["Cash support every year", "हर साल नकद सहायता"], l_one: ["One-time support", "एकमुश्त सहायता"],
+  l_cover: ["Insurance and health cover", "बीमा और स्वास्थ्य कवर"], l_loan: ["Loans you can apply for, up to", "लोन, अधिकतम"],
   form_note: ["Skip anything you'd rather not share. Results update as you go.", "जो बताना न चाहें, उसे छोड़ दें। नतीजे साथ-साथ बदलते रहेंगे।"],
-  hero_title: ["Find the government schemes made for you", "आपके लिए बनी सरकारी योजनाएँ खोजें"],
-  hero_sub: ["Tell us about yourself in your own words. We check you against every scheme's conditions and show what you can get, what to keep ready, and where to apply.",
-             "अपने बारे में अपने शब्दों में बताइए। हम हर योजना की शर्तों से मिलान करके बताएँगे कि आपको क्या मिल सकता है, कौन से दस्तावेज़ तैयार रखें और कहाँ आवेदन करें।"],
+  hero_title: ["Which government schemes are meant for you?", "कौन सी सरकारी योजनाएँ आपके लिए हैं?"],
+  hero_sub: ["Tell us about yourself in your own words. We check every scheme's conditions and show what you could receive, what to keep ready, and where to apply.",
+             "अपने बारे में अपने शब्दों में बताइए। हम हर योजना की शर्तें जाँचकर बताएँगे कि आपको क्या मिल सकता है, कौन से दस्तावेज़ तैयार रखें और कहाँ आवेदन करें।"],
   pill_1: ["14 central schemes", "14 केंद्रीय योजनाएँ"], pill_2: ["English and हिंदी", "हिंदी और English"], pill_3: ["Speak or type", "बोलें या लिखें"],
   describe_label: ["Describe yourself in a sentence", "एक वाक्य में अपने बारे में बताइए"],
-  how1_t: ["Tell us about yourself", "अपने बारे में बताइए"], how1_b: ["Describe yourself above, or answer the questions. Skip anything you like.", "ऊपर अपने बारे में लिखें, या सवालों के जवाब दें। जो चाहें छोड़ दें।"],
-  how2_t: ["See every condition checked", "हर शर्त की जाँच देखें"], how2_b: ["Each scheme gets a strip, one block per condition.", "हर योजना की एक पट्टी होती है, हर शर्त के लिए एक खाना।"],
+  how1_t: ["Describe yourself", "अपने बारे में बताइए"], how1_b: ["Type or speak a sentence, in English or Hindi. Skip anything you'd rather not share.", "हिंदी या अंग्रेज़ी में एक वाक्य लिखें या बोलें। जो बताना न चाहें, छोड़ दें।"],
+  how2_t: ["Every condition is checked", "हर शर्त जाँची जाती है"], how2_b: ["Each scheme gets a strip with one block per condition.", "हर योजना की एक पट्टी होती है, हर शर्त के लिए एक खाना।"],
   lg_met: ["you meet it", "पूरी"], lg_not: ["you don't", "पूरी नहीं"], lg_unk: ["not answered yet", "जवाब बाकी"],
-  how3_t: ["Get your plan", "अपनी योजना पाएँ"], how3_b: ["What you could receive, the documents to collect, and where to apply, as a report you can save.", "आपको क्या मिल सकता है, कौन से दस्तावेज़ जुटाने हैं और कहाँ आवेदन करना है — एक रिपोर्ट के रूप में।"],
-  ex_title: ["Try:", "आज़माएँ:"],
+  how3_t: ["Get your passbook", "अपनी पासबुक पाएँ"], how3_b: ["What you could receive, the documents to collect and where to apply, as a report you can save.", "आपको क्या मिल सकता है, कौन से दस्तावेज़ जुटाने हैं और कहाँ आवेदन करना है — एक रिपोर्ट के रूप में।"],
+  ex_title: ["Or try one:", "या इनमें से एक आज़माएँ:"],
+  g_check: ["Needs a few more answers", "कुछ और जवाब चाहिए"],
   st_likely: ["Likely eligible", "पात्र दिखते हैं"], st_check: ["Needs answers", "जवाब चाहिए"], st_not_eligible: ["Not a match", "मेल नहीं"],
   link_help: ["Government websites are sometimes slow or don't open on some networks. If the link doesn't work, call the helpline, visit your bank or nearest Common Service Centre (CSC), or look the scheme up on", "सरकारी वेबसाइटें कभी-कभी धीमी होती हैं या कुछ नेटवर्क पर नहीं खुलतीं। लिंक न खुले तो हेल्पलाइन पर कॉल करें, अपने बैंक या नज़दीकी कॉमन सर्विस सेंटर (CSC) जाएँ, या योजना यहाँ खोजें:"],
   apply_site: ["Apply / official site", "आवेदन / आधिकारिक साइट"], scheme_page: ["Scheme page", "योजना पेज"],
   toast_saved: ["Saved to your profile", "आपकी प्रोफ़ाइल में जोड़ा गया"],
-  describe_ph: ["e.g. I'm a 45 year old farmer from Bihar, we earn about 1 lakh a year and have a BPL card",
-                "जैसे: मैं बिहार का 45 साल का किसान हूँ, सालाना आय 1 लाख है और बीपीएल कार्ड है"],
+  describe_ph: ["I'm a 45 year old farmer from Bihar, we earn about 1 lakh a year and have a BPL card",
+                "मैं बिहार का 45 साल का किसान हूँ, सालाना आय 1 लाख है और बीपीएल कार्ड है"],
   describe_go: ["Find my schemes", "मेरी योजनाएँ खोजें"],
   basics: ["Basics", "बुनियादी जानकारी"], background: ["Background", "पृष्ठभूमि"], household: ["Your household", "आपका परिवार"],
   f_name: ["Name (optional)", "नाम (वैकल्पिक)"], f_age: ["Age", "उम्र"], f_gender: ["Gender", "लिंग"], f_area: ["Where you live", "आप कहाँ रहते हैं"],
@@ -40,7 +53,7 @@ const I18N = {
   o_vendor: ["Street vendor", "रेहड़ी-पटरी विक्रेता"], o_home: ["Homemaker", "गृहिणी"], o_unemp: ["Looking for work", "काम की तलाश में"],
   o_retired: ["Retired", "सेवानिवृत्त"], o_none: ["No formal schooling", "औपचारिक शिक्षा नहीं"], o_school: ["Up to Class 10", "कक्षा 10 तक"],
   o_pm: ["Class 11–12 / diploma", "कक्षा 11–12 / डिप्लोमा"], o_grad: ["Graduation", "स्नातक"], o_pg: ["Post-graduation", "स्नातकोत्तर"],
-  show_btn: ["Show my schemes", "मेरी योजनाएँ दिखाएँ"], sample_btn: ["Sample profile", "नमूना प्रोफ़ाइल"], clear_btn: ["Clear", "साफ़ करें"],
+  show_btn: ["Show my schemes", "मेरी योजनाएँ दिखाएँ"], sample_btn: ["Use a sample profile", "नमूना प्रोफ़ाइल भरें"], clear_btn: ["Clear", "साफ़ करें"],
   empty_title: ["Your matches will appear here", "आपकी योजनाएँ यहाँ दिखेंगी"],
   empty_body: ["Each scheme shows a row of its conditions. Green means you meet it, red means you don't, and grey means we still need an answer from you. Results update as you change any answer.",
                "हर योजना की शर्तें एक पट्टी में दिखती हैं। हरा मतलब शर्त पूरी, लाल मतलब पूरी नहीं, और धूसर मतलब जवाब बाकी है। कोई भी जवाब बदलते ही नतीजे तुरंत बदल जाते हैं।"],
@@ -48,14 +61,14 @@ const I18N = {
   ask_lede: ["Type or speak in English or Hindi. Describe yourself and I'll find your schemes, or ask about any scheme.",
              "हिंदी या अंग्रेज़ी में लिखें या बोलें। अपने बारे में बताइए, मैं आपकी योजनाएँ ढूँढ दूँगा, या किसी भी योजना के बारे में पूछें।"],
   read_aloud: ["Read answers aloud", "जवाब सुनाएँ"], send: ["Send", "भेजें"],
-  chat_ph: ["e.g. I'm a 60 year old widow, which schemes can I get?", "जैसे: मैं 60 साल की विधवा हूँ, मुझे कौन सी योजनाएँ मिल सकती हैं?"],
-  browse_title: ["All schemes in this prototype", "इस प्रोटोटाइप की सभी योजनाएँ"],
+  chat_ph: ["I'm a 60 year old widow, which schemes can I get?", "मैं 60 साल की विधवा हूँ, मुझे कौन सी योजनाएँ मिल सकती हैं?"],
+  browse_title: ["All schemes", "सभी योजनाएँ"],
   search_ph: ["Search by name or need, e.g. pension, housing", "नाम या ज़रूरत से खोजें, जैसे पेंशन, घर"],
   compare_btn: ["Compare side by side", "साथ-साथ तुलना करें"],
   ins_title: ["Insights for administrators", "प्रशासकों के लिए आँकड़े"],
   ins_lede: ["What citizens using the assistant need, computed live from every profile checked. Helps departments see which schemes are under-used and which conditions shut people out.",
              "सहायक का उपयोग करने वाले नागरिकों की ज़रूरतें, हर जाँची गई प्रोफ़ाइल से तुरंत गणना। विभाग देख सकते हैं कि कौन सी योजनाएँ कम उपयोग हो रही हैं और कौन सी शर्तें लोगों को बाहर कर रही हैं।"],
-  footer: ["Academic prototype, Minor Project, Department of ECE, MAIT. Guidance only — final eligibility is decided by the issuing authority. Always confirm on the official website before applying.",
+  footer: ["Academic prototype, Minor Project, Department of ECE, MAIT. Guidance only. Final eligibility is decided by the issuing authority, so always confirm on the official website before applying.",
            "शैक्षणिक प्रोटोटाइप, माइनर प्रोजेक्ट, ईसीई विभाग, एमएआईटी। केवल मार्गदर्शन के लिए — अंतिम पात्रता संबंधित विभाग तय करता है। आवेदन से पहले आधिकारिक वेबसाइट पर ज़रूर जाँचें।"],
   // dynamic text
   view: ["View details", "विवरण देखें"], qualify: ["You appear to qualify", "आप पात्र दिखते हैं"],
@@ -125,7 +138,7 @@ const SECTORS = {
 };
 function sicon(sector, size = "") {
   const [tint, tone, path] = SECTORS[sector] || ["#eef1f7", "#1d2d5c", '<circle cx="12" cy="12" r="7"/>'];
-  return `<span class="sicon ${size}" style="--tint:${tint};--tone:${tone}" aria-hidden="true"><svg viewBox="0 0 24 24">${path}</svg></span>`;
+  return `<span class="sicon ${size}" style="--tone:${tone}" aria-hidden="true"><svg viewBox="0 0 24 24">${path}</svg></span>`;
 }
 const EXAMPLES = [
   ["Farmer, Bihar", "I'm a 45 year old man, a farmer from a village in Bihar. We earn about 1 lakh a year, have a BPL card and 2 acres of land. I have a bank account and we don't pay income tax", "मैं बिहार के गाँव का 45 साल का किसान हूँ, गाँव में रहता हूँ, सालाना आय 1 लाख, बीपीएल कार्ड, 2 एकड़ ज़मीन और बैंक खाता है, आयकर नहीं भरते"],
@@ -135,7 +148,7 @@ const EXAMPLES = [
 ];
 const EX_HI = { "Farmer, Bihar": "किसान, बिहार", "Student, SC": "छात्र, अनुसूचित जाति", "Widow, 62": "विधवा, 62", "Tailor, Jaipur": "दर्ज़ी, जयपुर" };
 function renderExamples() {
-  $("#examples").innerHTML = `<span class="example-lead" style="font-size:.85rem;color:var(--slate);align-self:center">${L("ex_title")}</span>` +
+  $("#examples").innerHTML = `<span class="lead">${L("ex_title")}</span>` +
     EXAMPLES.map(([k], i) => `<button type="button" class="example" data-ex="${i}">${hi() ? EX_HI[k] : k}</button>`).join("");
   $$("#examples .example").forEach((b) => b.addEventListener("click", () => {
     const ex = EXAMPLES[Number(b.dataset.ex)];
@@ -203,6 +216,7 @@ function applyLang() {
 }
 $("#lang-toggle").addEventListener("click", () => {
   state.lang = hi() ? "en" : "hi";
+  $("#describe-note").textContent = "";
   try { localStorage.setItem("lang", state.lang); } catch {}
   applyLang();
 });
@@ -270,20 +284,41 @@ function writeProfile(p, { merge = false, flash = false } = {}) {
   Object.entries(p).forEach(([k, v]) => setField(k, v, flash));
 }
 
+/* ================= side sheets ================= */
+let lastFocus = null;
+function openSheet(id) {
+  closeSheets();
+  lastFocus = document.activeElement;
+  $("#" + id).hidden = false; $("#drawer-backdrop").hidden = false;
+  document.body.style.overflow = "hidden";
+}
+function closeSheets() {
+  ["form-sheet", "drawer"].forEach((id) => ($("#" + id).hidden = true));
+  $("#drawer-backdrop").hidden = true;
+  document.body.style.overflow = "";
+  if (lastFocus && document.contains(lastFocus)) lastFocus.focus();
+  lastFocus = null;
+}
+function openForm() { openSheet("form-sheet"); setTimeout(() => $("#profile-form").elements.age.focus(), 60); }
+$("#open-form").addEventListener("click", openForm);
+$("#form-close").addEventListener("click", closeSheets);
+
 $("#fill-demo").addEventListener("click", () => {
   writeProfile({ name: "Sunita", age: 34, gender: "female", area: "rural", state: "Uttar Pradesh", category: "OBC",
     income: 120000, occupation: "farmer", education: "school", has_bank_account: true, bpl: true, income_tax_payer: false,
     owns_land: true, owns_pucca_house: false, has_lpg: false, has_girl_child_under_10: true, pregnant_or_lactating: false }, { flash: true });
-  runMatch({ save: true });
+  closeSheets();
+  runMatch({ save: true, reveal: true });
 });
 
 $("#profile-form").addEventListener("reset", () => setTimeout(() => {
   $$(".yn button").forEach((b) => b.setAttribute("aria-pressed", "false"));
   state.profile = {}; state.lastMatch = null;
-  $("#results").innerHTML = ""; $("#results-empty").hidden = false; $("#describe-note").textContent = "";
+  $("#results").innerHTML = ""; $("#profile-summary").innerHTML = "";
+  $("#find-results").hidden = true; $("#how").hidden = false; $("#describe-note").textContent = "";
 }));
 
-$("#profile-form").addEventListener("submit", (e) => { e.preventDefault(); runMatch({ save: true }); });
+$("#profile-form").addEventListener("submit", (e) => { e.preventDefault(); closeSheets(); runMatch({ save: true, reveal: true }); });
 
 let liveTimer;
 function liveUpdate() {
@@ -294,7 +329,7 @@ function liveUpdate() {
 $("#profile-form").addEventListener("input", (e) => { if (e.target.id !== "describe-input") liveUpdate(); });
 $("#profile-form").addEventListener("change", (e) => { if (e.target.id !== "describe-input") liveUpdate(); });
 
-async function runMatch({ save = false, quiet = false } = {}) {
+async function runMatch({ save = false, quiet = false, reveal = false } = {}) {
   state.profile = readProfile();
   const btn = $('#profile-form button[type="submit"]');
   if (!quiet) { btn.disabled = true; btn.textContent = L("checking"); }
@@ -302,9 +337,10 @@ async function runMatch({ save = false, quiet = false } = {}) {
     const data = await post("/match", { profile: state.profile, save });
     state.lastMatch = data;
     renderResults(data);
-    if (!quiet && window.innerWidth < 880) $("#results-area").scrollIntoView({ behavior: "smooth" });
+    if (reveal) $("#find-results").scrollIntoView({ behavior: "smooth", block: "start" });
   } catch (err) {
-    $("#results").innerHTML = `<p class="empty">${L("server_err")}</p>`;
+    $("#find-results").hidden = false;
+    $("#results").innerHTML = `<p class="describe-note warn">${L("server_err")}</p>`;
   } finally {
     btn.disabled = false; btn.textContent = L("show_btn");
   }
@@ -320,10 +356,8 @@ async function describeFill() {
   if (!keys.length) { $("#describe-note").textContent = L("nothing_found"); $("#describe-note").classList.add("warn"); return; }
   $("#describe-note").classList.remove("warn");
   writeProfile(fields, { merge: true, flash: true });
-  $("#describe-note").textContent = `${L("filled")} ${keys.map((k) => describeField(k, fields[k])).join(", ")}`;
-  await runMatch({ save: true });
-  const target = window.innerWidth < 880 ? $("#results-area") : $(".find-grid");
-  target.scrollIntoView({ behavior: "smooth", block: "start" });
+  $("#describe-note").textContent = "";
+  await runMatch({ save: true, reveal: true });
 }
 $("#describe-go").addEventListener("click", describeFill);
 $("#describe-input").addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); describeFill(); } });
@@ -402,40 +436,72 @@ function summaryText(r) {
   return `सभी ${total} शर्तें पूरी`;
 }
 
-function card(r) {
+function entry(r) {
   const failed = r.conditions.filter((c) => c.result === "not_met");
-  const val = r.values && r.values[0] && r.status !== "not_eligible" ? `<span class="pill value">${esc(r.values[0].label)}</span>` : "";
-  return `<article class="card ${r.status}">
+  const val = r.values && r.values[0] && r.status !== "not_eligible" ? `<span class="entry-value">${esc(r.values[0].label)}</span>` : "";
+  return `<article class="entry ${r.status}" data-open="${r.scheme_id}" tabindex="0" role="button" aria-label="${esc(sName(r))}: ${L("view")}">
     ${sicon(r.sector)}
     <h3>${esc(sName(r))}</h3>
-    <button class="btn btn-ghost" data-open="${r.scheme_id}">${L("view")}</button>
-    <div class="meta"><span class="pill ${r.status}">${L("st_" + r.status)}</span>${val}<span class="sector">${esc(r.sector)}</span></div>
-    ${strip(r.conditions)}
-    <p class="strip-note">${esc(summaryText(r))}</p>
-    ${r.status === "not_eligible" && failed.length ? `<p class="why-not">${L("failed")}: ${failed.map((c) => esc(cLabel(c))).join("; ")}</p>` : ""}
+    ${val}
     ${r.status !== "not_eligible" ? `<p class="benefit">${esc(sBenefits(r))}</p>` : ""}
+    <div class="strip-row">${strip(r.conditions)}<span class="strip-note">${esc(summaryText(r))}</span></div>
+    ${r.status === "not_eligible" && failed.length ? `<p class="why-not">${L("failed")}: ${failed.map((c) => esc(cLabel(c))).join("; ")}</p>` : ""}
   </article>`;
 }
 
-function valueHero(counts, v) {
-  const tiles = [];
-  if (v.annual_cash) tiles.push([inr(v.annual_cash), L("t_cash")]);
-  if (v.one_time) tiles.push([inr(v.one_time), L("t_one")]);
-  if (v.cover) tiles.push([inr(v.cover), L("t_cover")]);
-  if (v.loan) tiles.push([inr(v.loan), L("t_loan")]);
+function statement(counts, v) {
+  const lines = [];
+  if (v.annual_cash) lines.push([L("l_cash"), inr(v.annual_cash)]);
+  if (v.one_time) lines.push([L("l_one"), inr(v.one_time)]);
+  if (v.cover) lines.push([L("l_cover"), inr(v.cover)]);
+  if (v.loan) lines.push([L("l_loan"), inr(v.loan)]);
   const name = state.profile.name ? esc(state.profile.name) + ", " : "";
-  const head = hi()
-    ? `${name}आप <b>${counts.likely}</b> योजनाओं के पात्र दिखते हैं${counts.check ? ` और <b>${counts.check}</b> और के हो सकते हैं` : ""}।${tiles.length ? " " + L("could_get") + ":" : ""}`
-    : `${name}${name ? "you" : "You"} appear to qualify for <b>${counts.likely}</b> scheme${counts.likely === 1 ? "" : "s"}${counts.check ? `, and may qualify for <b>${counts.check}</b> more` : ""}.${tiles.length ? " Together, " + L("could_get") + ":" : ""}`;
-  return `<div class="value-hero">
-    <p>${head}</p>
-    ${tiles.length ? `<div class="value-tiles">${tiles.map(([n, l]) => `<div class="value-tile"><strong>${n}</strong><span>${l}</span></div>`).join("")}</div>` : ""}
-    ${v.other.length ? `<div class="value-extra">${L("also")} ${v.other.map(esc).join(" · ")}</div>` : ""}
-    <div class="value-actions">
-      <button class="btn btn-primary btn-small" id="print-report">${L("report_btn")}</button>
-      <button class="btn btn-ghost btn-small" id="ask-these">${L("ask_btn")}</button>
+  const head = counts.likely > 1 ? L("st_head_some", { n: counts.likely }) : counts.likely === 1 ? L("st_head_one") : L("st_head_none");
+  const headText = name ? name + head.charAt(0).toLowerCase() + head.slice(1) : head;
+  let sub = lines.length ? L("st_sub_value") : !counts.likely ? L("st_sub_none") : "";
+  return `<div class="statement">
+    <h2>${hi() ? (name + head) : headText}</h2>
+    ${sub ? `<p class="sub">${sub}</p>` : ""}
+    ${lines.length ? `<ul class="ledger-lines">${lines.map(([w, a]) => `<li><span class="what">${w}</span><span class="dots" aria-hidden="true"></span><span class="amt">${a}</span></li>`).join("")}</ul>` : ""}
+    ${v.other.length ? `<p class="also">${L("also")} ${v.other.map(esc).join(", ")}.</p>` : ""}
+    ${counts.check && counts.likely ? `<p class="also">${L("st_sub_check", { n: counts.check })}</p>` : ""}
+    <div class="statement-actions">
+      <button class="btn btn-primary" id="print-report">${L("report_btn")}</button>
+      <button class="btn btn-quiet" id="ask-these">${L("ask_btn")}</button>
     </div>
   </div>`;
+}
+
+const FACT_ORDER = ["age", "gender", "occupation", "state", "area", "income", "category", "education", "bpl", "has_bank_account",
+  "income_tax_payer", "owns_land", "owns_pucca_house", "has_lpg", "has_girl_child_under_10", "pregnant_or_lactating"];
+function factText(k, v) {
+  if (k === "age") return hi() ? `${v} वर्ष` : `${v} years old`;
+  if (k === "state" || k === "category") return v;
+  if (k === "education") return L({ none: "o_none", school: "o_school", post_matric: "o_pm", graduate: "o_grad", postgraduate: "o_pg" }[v] || v);
+  if (["gender", "occupation", "area", "income"].includes(k)) return describeField(k, v).split(": ").slice(1).join(": ");
+  return describeField(k, v);
+}
+function renderSummary(results) {
+  const p = state.profile;
+  const facts = FACT_ORDER.filter((k) => p[k] !== undefined && p[k] !== "").map((k) =>
+    `<span class="fact${p[k] === false ? " no" : ""}">${esc(factText(k, p[k]))}</span>`).join("");
+  const missing = new Set();
+  let unlock = 0;
+  results.filter((r) => r.status === "check").forEach((r) => { unlock++; r.conditions.forEach((c) => c.result === "unknown" && missing.add(c.field)); });
+  $("#profile-summary").innerHTML = `
+    <h2>${p.name ? esc(p.name) : L("you_title")}</h2>
+    <div class="facts">${facts}</div>
+    ${missing.size ? `<div class="gap"><p>${L("gap_text", { n: missing.size, m: unlock, q: missing.size === 1 ? "question" : "questions", s: unlock === 1 ? "scheme" : "schemes" })}</p><button class="btn btn-quiet btn-small" id="gap-go">${L("gap_btn")}</button></div>` : ""}
+    <div class="you-actions">
+      <button class="btn btn-quiet btn-small" id="edit-details">${L("edit_details")}</button>
+      <button class="link-btn" id="start-over">${L("start_over")}</button>
+    </div>`;
+  $("#edit-details").addEventListener("click", openForm);
+  $("#gap-go")?.addEventListener("click", openForm);
+  $("#start-over").addEventListener("click", () => {
+    $("#profile-form").reset(); $("#describe-input").value = "";
+    window.scrollTo({ top: 0, behavior: "smooth" }); setTimeout(() => $("#describe-input").focus(), 300);
+  });
 }
 
 function planHtml(docs) {
@@ -448,15 +514,17 @@ function planHtml(docs) {
 
 function renderResults(data) {
   const { counts, results, value, documents } = data;
-  $("#results-empty").hidden = true;
+  $("#how").hidden = true; $("#find-results").hidden = false;
+  renderSummary(results);
   const by = (s) => results.filter((r) => r.status === s);
-  let html = valueHero(counts, value);
-  if (counts.likely) html += `<h2 class="group-title">${L("qualify")} <span class="count">${counts.likely}</span></h2>` + by("likely").map(card).join("");
-  if (counts.check) html += `<h2 class="group-title">${L("more_q")} <span class="count">${counts.check}</span></h2>` + by("check").map(card).join("");
+  const group = (title, n, rows) => `<section class="ledger-group"><h2>${title} <span class="count">${n}</span></h2><div class="ledger">${rows.map(entry).join("")}</div></section>`;
+  let html = statement(counts, value);
+  if (counts.likely) html += group(L("st_likely"), counts.likely, by("likely"));
+  if (counts.check) html += group(L("g_check"), counts.check, by("check"));
   html += planHtml(documents);
   if (counts.not_eligible) {
     const open = $("details.not-match")?.open ? "open" : "";
-    html += `<details class="not-match" ${open}><summary>${L("not_match")} (${counts.not_eligible})</summary>${by("not_eligible").map(card).join("")}</details>`;
+    html += `<details class="not-match" ${open}><summary>${L("not_match")} (${counts.not_eligible})</summary><div class="ledger">${by("not_eligible").map(entry).join("")}</div></details>`;
   }
   $("#results").innerHTML = html;
   $("#print-report").addEventListener("click", printReport);
@@ -498,6 +566,9 @@ document.addEventListener("click", (e) => {
   const open = e.target.closest("[data-open]");
   if (open) openDetail(Number(open.dataset.open));
 });
+document.addEventListener("keydown", (e) => {
+  if ((e.key === "Enter" || e.key === " ") && e.target.matches?.(".entry[data-open]")) { e.preventDefault(); openDetail(Number(e.target.dataset.open)); }
+});
 
 /* ================= detail drawer ================= */
 async function openDetail(id) {
@@ -518,17 +589,16 @@ async function openDetail(id) {
       <ul class="cond-list">${g.conditions.map((c) => `<li><span class="mark">•</span>${esc(c)}</li>`).join("")}</ul>`).join("") +
       `<p class="route-label">${L("fill_profile_tip")}</p>`;
   }
-  const [tint] = SECTORS[s.sector] || ["#f5f7fb"];
   const app = s.application || {};
   $("#drawer-body").innerHTML = `
-    <div class="drawer-head" style="--tint:${tint}">
+    <div class="drawer-head">
       ${sicon(s.sector)}
       <div><h2 id="drawer-title">${esc(sName(s))}</h2><p class="ministry">${esc(s.ministry)}</p>
       ${ev ? `<span class="pill ${ev.status}">${L("st_" + ev.status)}</span>` : ""}
       ${s.values && s.values[0] ? `<span class="pill value">${esc(s.values[0].label)}</span>` : ""}</div>
     </div>
     <div class="drawer-body-inner">
-    <p style="margin-top:1.2rem">${esc(sSummary(s))}</p>
+    <p>${esc(sSummary(s))}</p>
     <section><h3>${L("who")}</h3><p>${esc(s.target_beneficiaries)}</p></section>
     <section><h3>${L("benefits")}</h3><p>${esc(sBenefits(s))}</p></section>
     <section><h3>${L("eligibility")}</h3>${elig}</section>
@@ -560,17 +630,17 @@ async function openDetail(id) {
   }));
   updateProgress();
   $("#ask-about").addEventListener("click", () => {
-    closeDrawer(); show("ask");
+    closeSheets(); show("ask");
     state.chat.scheme_id = id;
     sendChat(hi() ? `${sName(s)} के बारे में बताइए` : `Tell me about ${s.scheme_name.split(" (")[0]}`);
   });
-  $("#drawer").hidden = false; $("#drawer-backdrop").hidden = false;
+  openSheet("drawer");
+  $("#drawer-body").scrollTop = 0;
   $("#drawer-close").focus();
 }
-function closeDrawer() { $("#drawer").hidden = true; $("#drawer-backdrop").hidden = true; }
-$("#drawer-close").addEventListener("click", closeDrawer);
-$("#drawer-backdrop").addEventListener("click", closeDrawer);
-document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeDrawer(); });
+$("#drawer-close").addEventListener("click", closeSheets);
+$("#drawer-backdrop").addEventListener("click", closeSheets);
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeSheets(); });
 
 /* ================= browse + compare ================= */
 async function loadBrowse() {
@@ -747,14 +817,14 @@ async function loadInsights() {
     <div class="ins-grid">
       <div class="ins-panel">
         <h2>${L("i_demand")}</h2><p>${L("i_demand_p")}</p>
-        <div class="legend"><span><i style="background:var(--leaf)"></i>${L("i_likely")}</span><span><i style="background:var(--marigold)"></i>${L("i_check")}</span></div>
+        <div class="legend"><span><i style="background:var(--green)"></i>${L("i_likely")}</span><span><i style="background:var(--haldi)"></i>${L("i_check")}</span></div>
         ${d.schemes.map((s) => `<div class="bar-row"><span class="name" title="${esc(s.scheme_name)}">${esc(s.scheme_name.split(" (")[0])}</span>
           <span class="bar"><i class="l" style="width:${(s.likely / max) * 100}%"></i><i class="c" style="width:${(s.check / max) * 100}%"></i></span>
           <span class="num">${s.likely} + ${s.check}</span></div>`).join("")}
       </div>
       <div>
         <div class="ins-panel"><h2>${L("i_block")}</h2><p>${L("i_block_p")}</p>
-          ${d.top_blockers.map((b) => `<div class="bar-row"><span class="name" title="${esc(cLabel(b))} — ${esc(b.scheme)}">${esc(b.scheme)}: ${esc(cLabel(b))}</span><span class="bar"><i class="b" style="width:${(b.count / maxB) * 100}%"></i></span><span class="num">${b.count}</span></div>`).join("")}
+          ${d.top_blockers.map((b) => `<div class="bar-row stacked"><span class="name"><b>${esc(b.scheme)}</b><small>${esc(cLabel(b))}</small></span><span class="bar"><i class="b" style="width:${(b.count / maxB) * 100}%"></i></span><span class="num">${b.count}</span></div>`).join("")}
         </div>
         <div class="ins-panel"><h2>${L("i_unans")}</h2><p>${L("i_unans_p")}</p>
           ${d.most_unanswered.map((b) => `<div class="bar-row"><span class="name">${esc((FIELD_LABELS[b.field] || [b.field, b.field])[hi() ? 1 : 0])}</span><span class="bar"><i class="c" style="width:${(b.count / maxU) * 100}%"></i></span><span class="num">${b.count}</span></div>`).join("")}
@@ -774,6 +844,10 @@ async function post(path, body) {
 }
 
 /* ================= init ================= */
+$("#spokes").innerHTML = Array.from({ length: 24 }, (_, i) => {
+  const a = (i * 15 * Math.PI) / 180;
+  return `<line x1="${20 + 3.5 * Math.cos(a)}" y1="${20 + 3.5 * Math.sin(a)}" x2="${20 + 16 * Math.cos(a)}" y2="${20 + 16 * Math.sin(a)}"/>`;
+}).join("");
 buildForm();
 try { state.lang = localStorage.getItem("lang") || "en"; } catch {}
 get("/health").then((h) => { state.aiMode = h.ai_mode; applyLang(); }).catch(() => {});
