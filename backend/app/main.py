@@ -118,15 +118,30 @@ def extract_profile(req: ExtractRequest):
 
 
 @app.get("/api/insights")
-def insights(db: Session = Depends(get_db)):
-    """Aggregate demand analytics for administrators, computed from saved profiles."""
+def insights(occupation: str | None = None, area: str | None = None, gender: str | None = None,
+             state: str | None = None, sector: str | None = None, db: Session = Depends(get_db)):
+    """Aggregate demand analytics for administrators, computed from saved profiles.
+    Optional filters narrow the citizens (occupation, area, gender, state) or the schemes (sector)."""
     schemes = load_schemes(db)
-    users = db.query(User).all()
+    if sector:
+        schemes = [s for s in schemes if s.sector == sector]
+    query = db.query(User)
+    if occupation:
+        query = query.filter(User.occupation == occupation)
+    if area:
+        query = query.filter(User.area == area)
+    if gender:
+        query = query.filter(User.gender == gender)
+    if state:
+        query = query.filter(User.location == state)
+    users = query.all()
     per_scheme = {s.scheme_id: {"scheme_name": s.scheme_name, "sector": s.sector, "likely": 0, "check": 0} for s in schemes}
     blockers: dict[str, int] = {}
     unanswered: dict[str, int] = {}
     total_likely, cash, cover = 0, 0, 0
     occupations: dict[str, int] = {}
+    areas: dict[str, int] = {}
+    reached = 0
     for u in users:
         p = {"age": u.age, "gender": u.gender, "education": u.education, "occupation": u.occupation, "income": u.income,
              "state": u.location, "area": u.area, "category": u.category, **json.loads(u.extra or "{}")}
@@ -143,7 +158,11 @@ def insights(db: Session = Depends(get_db)):
             missing_fields |= {c["field"] for c in r["conditions"] if c["result"] == "unknown"}
         for f in missing_fields:
             unanswered[f] = unanswered.get(f, 0) + 1
-        total_likely += sum(r["status"] == "likely" for r in res)
+        n_likely = sum(r["status"] == "likely" for r in res)
+        total_likely += n_likely
+        reached += n_likely > 0
+        if u.area:
+            areas[u.area] = areas.get(u.area, 0) + 1
         v = value_summary(res)
         cash += v["annual_cash"] + v["one_time"]
         cover += v["cover"]
@@ -160,6 +179,9 @@ def insights(db: Session = Depends(get_db)):
                               key=lambda x: -x["count"])[:6],
         "most_unanswered": sorted(({"field": k, "count": v} for k, v in unanswered.items()), key=lambda x: -x["count"])[:6],
         "occupations": sorted(({"occupation": k, "count": v} for k, v in occupations.items()), key=lambda x: -x["count"]),
+        "share_with_a_scheme": round(reached / n, 3) if n else 0,
+        "areas": sorted(({"area": k, "count": v} for k, v in areas.items()), key=lambda x: -x["count"]),
+        "filters": {"occupation": occupation, "area": area, "gender": gender, "state": state, "sector": sector},
     }
 
 

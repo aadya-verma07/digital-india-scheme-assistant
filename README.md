@@ -85,7 +85,12 @@ backend/
   requirements.txt
   .env.example
 frontend/
-  index.html, styles.css, app.js    Web interface (HTML, CSS, JavaScript)
+  index.html          App shell (header, navigation, sheets)
+  styles.css          Design system: colour, type and spacing tokens, components, responsive rules
+  fonts/              Self-hosted Manrope + Noto Sans Devanagari (OFL)
+  js/app.js           Entry point: routing, language switch, live profile sync
+  js/state.js, api.js, router.js, i18n.js, ui.js, profile.js, voice.js   Shared modules
+  js/views/           home, check (multi-step), results, detail sheet, ask, schemes, insights
 database/
   schema.sql        PostgreSQL schema
 docker-compose.yml  Optional PostgreSQL container
@@ -105,6 +110,17 @@ docker-compose.yml  Optional PostgreSQL container
 | **Side-by-side comparison** | Pick up to 3 schemes on All schemes, or ask "Compare PMJJBY and PMSBY". |
 | **Insights dashboard** | For officials: demand by scheme, "near misses" (citizens one condition away from a scheme, such as a missing bank account or BPL status), questions people skip, and who is using the service. |
 | **Typos and follow-ups** | "ujwala", "ayushmaan" still work; "what documents?" after discussing a scheme answers for that scheme. |
+
+## Interface
+
+| Page | What it does |
+|---|---|
+| **Home** | One AI search box: describe yourself and it opens your results; ask a question and it goes to the assistant. Category tiles, most-used schemes, how it works. |
+| **Eligibility check** | Five steps with a progress bar and a live count of matching schemes. Pre-filled from anything typed, spoken or said in chat. |
+| **My results** | Summary figures (eligible schemes, yearly cash, cover, loans), tabs for Eligible / Needs answers / Not eligible, expandable conditions, missing information that links to the right question, a combined document checklist and a printable report. |
+| **Assistant** | Conversation with quick replies, scheme cards and comparison tables; side panel with suggested questions and the details it has learned. |
+| **All schemes** | Search, category filter, sorting (including "best match for me"), cards and side-by-side comparison. |
+| **Insights** | Filters (occupation, area, gender, scheme category), headline figures and charts with a table view. Uses `GET /api/insights` with optional filter parameters. |
 
 ## How it maps to the synopsis
 
@@ -152,7 +168,7 @@ The assistant is a layered pipeline, not a single chatbot call:
 | POST | `/api/eligibility/{id}` | Condition-by-condition check for one scheme |
 | POST | `/api/extract` | Free text → profile fields |
 | POST | `/api/chat` | Conversational assistant (intent, interview state, cards, quick replies, tables) |
-| GET | `/api/insights` | Aggregate analytics across all profiles |
+| GET | `/api/insights?occupation=&area=&gender=&state=&sector=` | Aggregate analytics across all profiles, optionally filtered |
 
 The Insights dashboard starts with 120 synthetic demo profiles (generated with a fixed seed in `seed.py`)
 so it has data to show; every real profile checked in the app is added on top.
