@@ -136,10 +136,10 @@ def extract(text: str) -> dict:
             out["income"] = int(_num(m.group(1)) * 100000)
 
     # gender
-    if re.search(r"\b(woman|female|lady|girl|mother|widow|wife|mahila|aurat|housewife)\b|\b(?:rehti|rahti|karti|chalati)\b|महिला|विधवा|औरत|माँ|रहती|करती", t) \
+    if re.search(r"\b(woman|female|lady|girl|mother|widow|wife|mahila|aurat|stri|stree|ladki|vidhwa|vidhva|housewife)\b|\b(?:rehti|rahti|karti|chalati)\b|महिला|विधवा|औरत|माँ|रहती|करती", t) \
             or re.search(r"\b(?:i am|i'm) a (?:\w+ )?(?:mother|widow)\b", t):
         out["gender"] = "female"
-    elif re.search(r"\b(man|male|boy|husband|gentleman|aadmi)\b|\b(?:rehta|rahta|karta|chalata)\b|पुरुष|आदमी|रहता|करता", t):
+    elif re.search(r"\b(man|male|boy|husband|gentleman|aadmi|purush|purus|mard|ladka)\b|\b(?:rehta|rahta|karta|chalata)\b|पुरुष|आदमी|रहता|करता", t):
         out["gender"] = "male"
     if re.search(r"\b(pregnant|expecting|garbhvati)\b|गर्भवती|new mother|newborn|just had a baby", t):
         out["pregnant_or_lactating"] = True

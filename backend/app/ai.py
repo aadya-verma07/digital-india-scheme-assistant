@@ -336,7 +336,7 @@ def ask(resp: dict, field: str, interview: dict, lang: str, prefix: str = "") ->
     resp["quick_replies"] = [{"label": o["label_hi"] if lang == "hi" else o["label"], "value": o["value"]}
                              for o in options + [SKIP_OPT]]
     resp["pending_field"] = field
-    resp["interview"] = interview
+    resp["interview"] = {**interview, "lang": lang}   # remember the conversation's language for short replies
     resp["intent"] = "interview"
     return resp
 
@@ -484,6 +484,13 @@ async def answer(message: str, schemes: list[Scheme], profile: dict | None = Non
                  interview: dict | None = None, lang_pref: str | None = None) -> dict:
     history = history or []
     lang = detect_lang(message, lang_pref)
+    # Mid-interview, a short reply like "28", "mahila" or "ha" carries no clear language signal:
+    # keep answering in the language the conversation is already in.
+    if interview and interview.get("lang") and pending_field:
+        words = set(re.findall(r"[a-z]+", message.lower()))
+        strong = re.search(r"[\u0900-\u097f]", message) or len(words & HINGLISH) >= 2
+        if not strong and len(message.split()) <= 3:
+            lang = interview["lang"]
     profile = {k: v for k, v in (profile or {}).items() if v not in (None, "")}
     by_id = {s.scheme_id: s for s in schemes}
     intent = detect_intent(message)
