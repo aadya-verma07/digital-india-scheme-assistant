@@ -1,3 +1,24 @@
+# =====================================================================================
+# FILE: main.py  -  THE WEB SERVER: every API endpoint lives here
+# -------------------------------------------------------------------------------------
+# Started by:  uvicorn app.main:app   (locally and on Render)
+# What it does:
+# - On startup, creates/fills the database (seed()).
+# - Defines the REST API the website calls (all URLs starting with /api/...).
+# - Also serves the website itself (the frontend folder), so the whole project is ONE service.
+# Endpoints:
+#   GET  /api/health              status, number of schemes, AI mode
+#   GET  /api/sectors             list of scheme categories
+#   GET  /api/schemes             list of schemes (optional search q= and category sector=)
+#   GET  /api/schemes/{id}        everything about one scheme
+#   POST /api/match               check a profile against ALL schemes (optionally save the profile)
+#   POST /api/extract             read profile details from one sentence
+#   GET  /api/insights            admin statistics from all saved profiles (optional filters)
+#   POST /api/eligibility/{id}    check a profile against ONE scheme
+#   POST /api/chat                the AI assistant
+# Interactive documentation of all endpoints: open /docs in the browser.
+# =====================================================================================
+
 """FastAPI backend — Digital India Citizen Services & Government Scheme Assistant.
 
 Run from the backend/ folder:   uvicorn app.main:app --reload
@@ -22,13 +43,17 @@ from .models import Scheme, User
 from .schemas import ChatRequest, ExtractRequest, MatchRequest, Profile
 from .seed import seed
 
+# Create the FastAPI application. title/description appear on the /docs page.
 app = FastAPI(title="Digital India Scheme Assistant API", version="1.0.0",
               description="Scheme discovery, eligibility assistance, document guidance and an AI assistant.")
+# CORS: allow browsers on any website to call this API (fine for a prototype; production would list allowed sites).
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
+# Path to the frontend folder (two levels up from this file), used to serve the website.
 FRONTEND = Path(__file__).resolve().parents[2] / "frontend"
 
 
+# startup(): runs once when the server starts - creates tables and loads scheme data (see seed.py).
 @app.on_event("startup")
 def startup():
     n = seed()
@@ -36,12 +61,16 @@ def startup():
         print(f"Seeded {n} schemes into the database.")
 
 
+# load_schemes(db): read all schemes WITH their rules, documents and application info.
+# selectinload fetches the child tables in a few queries up front, instead of one query per scheme later (faster).
 def load_schemes(db: Session) -> list[Scheme]:
     return (db.query(Scheme)
             .options(selectinload(Scheme.criteria), selectinload(Scheme.documents), selectinload(Scheme.application))
             .order_by(Scheme.scheme_name).all())
 
 
+# scheme_detail(s): convert one Scheme database object into the JSON the detail panel needs.
+# Conditions are grouped by route (group_no); steps are decoded from JSON text into a list.
 def scheme_detail(s: Scheme) -> dict:
     groups: dict[int, list] = {}
     for c in s.criteria:
@@ -58,16 +87,20 @@ def scheme_detail(s: Scheme) -> dict:
     }
 
 
+# GET /api/health - quick check that the server and database work; also tells the website whether an LLM is connected.
 @app.get("/api/health")
 def health(db: Session = Depends(get_db)):
     return {"status": "ok", "schemes": db.query(Scheme).count(), "ai_mode": ai.LLM_PROVIDER if ai.llm_enabled() else "rules"}
 
 
+# GET /api/sectors - the distinct categories (Agriculture, Health, ...), sorted A-Z.
 @app.get("/api/sectors")
 def sectors(db: Session = Depends(get_db)):
     return sorted({s for (s,) in db.query(Scheme.sector).all()})
 
 
+# GET /api/schemes - list of schemes for the homepage and directory.
+# q = search text (case-insensitive, in name/description/beneficiaries/benefits), sector = category filter.
 @app.get("/api/schemes")
 def list_schemes(q: str | None = None, sector: str | None = None, db: Session = Depends(get_db)):
     query = db.query(Scheme)
@@ -83,6 +116,7 @@ def list_schemes(q: str | None = None, sector: str | None = None, db: Session = 
             for s in query.order_by(Scheme.scheme_name)]
 
 
+# GET /api/schemes/{id} - full details of one scheme, or HTTP 404 if the id doesn't exist.
 @app.get("/api/schemes/{scheme_id}")
 def get_scheme(scheme_id: int, db: Session = Depends(get_db)):
     s = db.get(Scheme, scheme_id)
@@ -91,6 +125,10 @@ def get_scheme(scheme_id: int, db: Session = Depends(get_db)):
     return scheme_detail(s)
 
 
+# POST /api/match - the main eligibility request.
+# 1. If save=true, store the profile as a new row in the users table (yes/no answers go into `extra` as JSON).
+# 2. Load all schemes and run the rule engine (matching.match).
+# 3. Return counts per status, every scheme's result, benefit totals and the combined document checklist.
 @app.post("/api/match")
 def match_schemes(req: MatchRequest, db: Session = Depends(get_db)):
     profile = req.profile.model_dump()
@@ -110,6 +148,7 @@ def match_schemes(req: MatchRequest, db: Session = Depends(get_db)):
             "value": value_summary(results), "documents": documents_plan(results, schemes)}
 
 
+# POST /api/extract - turn one sentence into profile fields using extract.py (rule-based NLP).
 @app.post("/api/extract")
 def extract_profile(req: ExtractRequest):
     """Natural-language profile filling: 'I am a 45 year old farmer from Bihar...' -> profile fields."""
@@ -117,11 +156,15 @@ def extract_profile(req: ExtractRequest):
     return {"profile": fields, "noted": [describe_update(k, v, "en") for k, v in fields.items()]}
 
 
+# GET /api/insights - statistics for the admin Insights page.
+# Re-checks EVERY saved profile against every scheme (so rule changes apply to past profiles too) and counts:
+# demand per scheme, near misses, most-unanswered questions, occupation and area mix, money/cover identified.
 @app.get("/api/insights")
 def insights(occupation: str | None = None, area: str | None = None, gender: str | None = None,
              state: str | None = None, sector: str | None = None, db: Session = Depends(get_db)):
     """Aggregate demand analytics for administrators, computed from saved profiles.
     Optional filters narrow the citizens (occupation, area, gender, state) or the schemes (sector)."""
+    # Optional filters: sector narrows the schemes; occupation/area/gender/state narrow the citizens.
     schemes = load_schemes(db)
     if sector:
         schemes = [s for s in schemes if s.sector == sector]
@@ -135,6 +178,7 @@ def insights(occupation: str | None = None, area: str | None = None, gender: str
     if state:
         query = query.filter(User.location == state)
     users = query.all()
+    # Counters filled in the loop below.
     per_scheme = {s.scheme_id: {"scheme_name": s.scheme_name, "sector": s.sector, "likely": 0, "check": 0} for s in schemes}
     blockers: dict[str, int] = {}
     unanswered: dict[str, int] = {}
@@ -142,6 +186,7 @@ def insights(occupation: str | None = None, area: str | None = None, gender: str
     occupations: dict[str, int] = {}
     areas: dict[str, int] = {}
     reached = 0
+    # Rebuild each saved profile (columns + JSON yes/no answers) and run the rule engine on it.
     for u in users:
         p = {"age": u.age, "gender": u.gender, "education": u.education, "occupation": u.occupation, "income": u.income,
              "state": u.location, "area": u.area, "category": u.category, **json.loads(u.extra or "{}")}
@@ -158,6 +203,7 @@ def insights(occupation: str | None = None, area: str | None = None, gender: str
             missing_fields |= {c["field"] for c in r["conditions"] if c["result"] == "unknown"}
         for f in missing_fields:
             unanswered[f] = unanswered.get(f, 0) + 1
+        # Per-citizen totals: how many schemes they qualify for, and whether they qualify for at least one.
         n_likely = sum(r["status"] == "likely" for r in res)
         total_likely += n_likely
         reached += n_likely > 0
@@ -168,6 +214,7 @@ def insights(occupation: str | None = None, area: str | None = None, gender: str
         cover += v["cover"]
         if u.occupation:
             occupations[u.occupation] = occupations.get(u.occupation, 0) + 1
+    # Build the response; lists are sorted with the biggest numbers first.
     n = len(users)
     return {
         "profiles": n,
@@ -185,6 +232,7 @@ def insights(occupation: str | None = None, area: str | None = None, gender: str
     }
 
 
+# POST /api/eligibility/{id} - check one profile against one scheme (used by the scheme detail panel).
 @app.post("/api/eligibility/{scheme_id}")
 def check_eligibility(scheme_id: int, profile: Profile, db: Session = Depends(get_db)):
     s = db.get(Scheme, scheme_id)
@@ -193,6 +241,8 @@ def check_eligibility(scheme_id: int, profile: Profile, db: Session = Depends(ge
     return {"scheme_id": scheme_id, "scheme_name": s.scheme_name, **evaluate(profile.model_dump(), s)}
 
 
+# POST /api/chat - the AI assistant. Loads the schemes and passes the message plus all context
+# (profile, scheme being discussed, history, pending question, interview state, language) to ai.answer().
 @app.post("/api/chat")
 async def chat(req: ChatRequest, db: Session = Depends(get_db)):
     schemes = load_schemes(db)
@@ -202,9 +252,11 @@ async def chat(req: ChatRequest, db: Session = Depends(get_db)):
 
 
 # Serve the frontend from the same server
+# Files in frontend/ (CSS, JavaScript, fonts) are available at /static/...
 app.mount("/static", StaticFiles(directory=FRONTEND), name="static")
 
 
+# GET / - the home page (index.html). include_in_schema=False hides it from /docs.
 @app.get("/", include_in_schema=False)
 def index():
     return FileResponse(FRONTEND / "index.html")

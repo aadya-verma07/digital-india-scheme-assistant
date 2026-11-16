@@ -1,4 +1,9 @@
 // AI assistant: conversation with interview quick-replies, cards, comparison tables, voice; side panel with suggestions and known facts.
+// FILE: js/views/ask.js - the AI ASSISTANT page (#ask): the chat screen.
+// Sends each message to POST /api/chat (backend ai.py) together with the conversation state, then draws the
+// reply: text, scheme cards, comparison table, sources, quick-reply buttons and a read-aloud button.
+// Side panel: suggested questions, "What I know about you" (profile facts), auto read-aloud switch, new chat.
+
 import { state, setProfile } from "../state.js";
 import { L, hi } from "../i18n.js";
 import * as api from "../api.js";
@@ -8,7 +13,9 @@ import { listen, speak } from "../voice.js";
 import { go } from "../router.js";
 import { openScheme } from "./detail.js";
 
+// The assistant's avatar (small SVG).
 const BOT = '<svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="11" fill="none" stroke="#fff" stroke-width="1.8"/><circle cx="20" cy="20" r="2.4" fill="#eba94b"/></svg>';
+// A message waiting to be sent once the page is ready; whether auto read-aloud is on; whether the chat layout is built (and in which language).
 let pending = null;
 const autoSpeakOn = () => { try { return localStorage.getItem("autoSpeak") === "1"; } catch { return false; } };
 let built = false;
@@ -20,6 +27,7 @@ export function sendToAssistant(text) {
   if (location.hash === "#ask") renderAsk(); else go("ask");
 }
 
+// Suggested questions in the side panel (English or Hindi).
 const SUGGEST = () => hi() ? [
   ["g_find", ["मेरे लिए कौन सी योजनाएँ हैं?", "मैं 60 साल की विधवा हूँ, गाँव में रहती हूँ"]],
   ["g_elig", ["क्या मैं उज्ज्वला के लिए पात्र हूँ?", "क्या मुझे आयुष्मान कार्ड मिल सकता है?"]],
@@ -32,6 +40,7 @@ const SUGGEST = () => hi() ? [
   ["g_compare", ["Compare PMJJBY and PMSBY", "Mudra vs Stand-Up India"]],
 ];
 
+// knownFacts(): chips of everything the assistant knows about the user (same profile as the checker).
 function knownFacts() {
   const p = state.profile;
   const facts = FACT_ORDER.filter((k) => p[k] !== undefined);
@@ -40,8 +49,11 @@ function knownFacts() {
        <a class="btn btn-secondary btn-sm" href="#results" style="margin-top:.9rem">${L("open_results")}${icon("arrow")}</a>`
     : `<p class="small muted">${L("known_empty")}</p>`;
 }
+// refreshKnown(): redraw those chips (called by app.js whenever the profile changes).
 export function refreshKnown() { const k = $("#known"); if (k) k.innerHTML = knownFacts(); }
 
+// buildShell(): build the chat layout once (log, input box, mic, side panel) and connect its buttons:
+// send, mic (voice input), suggestions, auto read-aloud switch, and 'New chat' (clears the conversation state).
 function buildShell() {
   const root = $("#view-ask");
   const oldLog = $("#chat-log")?.innerHTML;
@@ -86,13 +98,16 @@ function buildShell() {
   built = true; builtLang = state.lang;
 }
 
+// rebindLog(): reconnect buttons inside old messages after the log is rebuilt.
 function rebindLog() {
   $$("#chat-log [data-open]").forEach((b) => b.addEventListener("click", () => openScheme(Number(b.dataset.open))));
   $$("#chat-log .speak").forEach((b) => b.addEventListener("click", () => speak(b.dataset.text, b.dataset.lang)));
 }
 
+// scroll(): keep the newest message in view.
 function scroll() { const log = $("#chat-log"); log.scrollTop = log.scrollHeight; }
 
+// addUser(text): add the user's message bubble.
 function addUser(text) {
   const row = document.createElement("div");
   row.className = "msg-row user";
@@ -100,6 +115,8 @@ function addUser(text) {
   $("#chat-log").appendChild(row); scroll();
 }
 
+// addBot(res): add the assistant's reply bubble from the server's reply object: text (links made clickable),
+// 'I noted: ...' chips, comparison table, scheme cards, sources and a 🔊 button; reads it aloud if auto-speak is on.
 function addBot(res) {
   const row = document.createElement("div");
   row.className = "msg-row bot";
@@ -120,6 +137,8 @@ function addBot(res) {
   if ($("#auto-speak")?.checked) speak(res.answer, res.lang);
 }
 
+// quickReplies(list): tap buttons under the last answer. Interview answers send their value (answer_value)
+// so the server doesn't have to interpret text; other buttons send a ready-made question.
 function quickReplies(list) {
   const box = $("#quick-replies");
   box.innerHTML = (list || []).map((q, i) => `<button type="button" class="qr" data-i="${i}">${esc(q.label)}</button>`).join("");
@@ -129,6 +148,12 @@ function quickReplies(list) {
   }));
 }
 
+// send(text, {answerValue}): the core of the chat.
+// 1. Show the user's bubble and a typing indicator.
+// 2. POST /api/chat with the message + conversation state (pending question, interview, scheme being discussed,
+//    history, language) + the profile.
+// 3. Facts the assistant learned (profile_updates) are saved to the shared profile -> results and checker update too.
+// 4. Remember the new conversation state from the reply, show the reply, and keep the last messages as history.
 async function send(text, { answerValue = null } = {}) {
   text = String(text).trim(); if (!text) return;
   state.chat.started = true;
@@ -159,6 +184,7 @@ async function send(text, { answerValue = null } = {}) {
   }
 }
 
+// welcome(): the first greeting with starter buttons.
 function welcome() {
   addBot({ answer: L("welcome"), lang: state.lang });
   quickReplies(hi()
@@ -166,6 +192,7 @@ function welcome() {
     : [{ label: "Find schemes for me", send: "Which schemes can I apply for?" }, { label: "Am I eligible for Ujjwala?", send: "Am I eligible for Ujjwala?" }]);
 }
 
+// renderAsk(): draw the page; rebuild the layout if the language changed; send any message waiting from another page.
 export function renderAsk() {
   if (!built || builtLang !== state.lang) buildShell();
   else refreshKnown();

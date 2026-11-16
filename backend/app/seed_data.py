@@ -1,3 +1,14 @@
+# =====================================================================================
+# FILE: seed_data.py  -  THE CONTENT: the 14 government schemes, written as Python data
+# -------------------------------------------------------------------------------------
+# This file holds no logic - only information, compiled from each scheme's official website.
+# seed.py copies it into the database. To add or correct a scheme, edit this file only:
+# the app notices the change (fingerprint in seed.py) and reloads the schemes on the next start.
+# Two parts:
+#   SCHEMES - list of 14 dictionaries, one per scheme (English text, rules, documents, how to apply)
+#   EXTRA   - Hindi text and estimated benefit values for each scheme, keyed by slug
+# =====================================================================================
+
 """Seed data for the prototype: 14 central government schemes.
 
 Compiled from the official scheme portals listed in `official_source`.
@@ -6,8 +17,17 @@ Each criterion: (group_no, field, operator, value, plain-language label).
 Criteria in the same group must all hold; any one group is enough.
 """
 
+# Each scheme dictionary has:
+#   slug                 - short unique code used inside the app
+#   scheme_name, ministry, sector (category), description, target_beneficiaries, benefits, official_source
+#   criteria  - eligibility rules as tuples: (group_no, profile field, operator, value, label shown to the user)
+#               same group_no = ALL must hold (AND); different group_no = alternative ways to qualify (OR)
+#               operators: eq, neq, gte (>=), lte (<=), between (range), in (one of a list)
+#   documents - tuples: (document name, description, mandatory True/False)
+#   application - mode (online/offline), numbered steps, apply_url, helpline
 SCHEMES = [
     {
+        # ---- Scheme 1 of 14: PM Kisan Samman Nidhi (PM-KISAN) ----
         "slug": "pm-kisan",
         "scheme_name": "PM Kisan Samman Nidhi (PM-KISAN)",
         "ministry": "Ministry of Agriculture & Farmers Welfare",
@@ -16,18 +36,21 @@ SCHEMES = [
         "target_beneficiaries": "Landholding farmer families with cultivable land in their name.",
         "benefits": "Rs 6,000 per year, paid in three instalments of Rs 2,000 through Direct Benefit Transfer.",
         "official_source": "https://pmkisan.gov.in",
+        # Rules for this scheme (all in group 1, so all four must be true).
         "criteria": [
             (1, "occupation", "eq", "farmer", "You are a farmer"),
             (1, "owns_land", "eq", True, "Your family owns cultivable land"),
             (1, "income_tax_payer", "eq", False, "No one in the family paid income tax last year"),
             (1, "has_bank_account", "eq", True, "You have a bank account (Aadhaar-linked)"),
         ],
+        # (document name, what it is, mandatory?)
         "documents": [
             ("Aadhaar card", "Mandatory for registration and eKYC", True),
             ("Land ownership records", "Khatauni / land record in the farmer's name", True),
             ("Bank account details", "Aadhaar-seeded savings account", True),
             ("Mobile number", "For OTP-based eKYC", True),
         ],
+        # How to apply: mode, steps shown to the user, application link, helpline number.
         "application": {
             "mode": "Online & Offline",
             "steps": [
@@ -42,6 +65,7 @@ SCHEMES = [
         },
     },
     {
+        # ---- Scheme 2 of 14: Ayushman Bharat PM Jan Arogya Yojana (AB PM-JAY) ----
         "slug": "pm-jay",
         "scheme_name": "Ayushman Bharat PM Jan Arogya Yojana (AB PM-JAY)",
         "ministry": "Ministry of Health & Family Welfare",
@@ -72,6 +96,7 @@ SCHEMES = [
         },
     },
     {
+        # ---- Scheme 3 of 14: Pradhan Mantri Awas Yojana – Urban 2.0 ----
         "slug": "pmay-urban",
         "scheme_name": "Pradhan Mantri Awas Yojana – Urban 2.0",
         "ministry": "Ministry of Housing & Urban Affairs",
@@ -105,6 +130,7 @@ SCHEMES = [
         },
     },
     {
+        # ---- Scheme 4 of 14: Pradhan Mantri Ujjwala Yojana (PMUY) ----
         "slug": "ujjwala",
         "scheme_name": "Pradhan Mantri Ujjwala Yojana (PMUY)",
         "ministry": "Ministry of Petroleum & Natural Gas",
@@ -138,6 +164,7 @@ SCHEMES = [
         },
     },
     {
+        # ---- Scheme 5 of 14: Sukanya Samriddhi Yojana (SSY) ----
         "slug": "sukanya-samriddhi",
         "scheme_name": "Sukanya Samriddhi Yojana (SSY)",
         "ministry": "Ministry of Finance",
@@ -167,6 +194,7 @@ SCHEMES = [
         },
     },
     {
+        # ---- Scheme 6 of 14: Atal Pension Yojana (APY) ----
         "slug": "atal-pension",
         "scheme_name": "Atal Pension Yojana (APY)",
         "ministry": "Ministry of Finance",
@@ -199,6 +227,7 @@ SCHEMES = [
         },
     },
     {
+        # ---- Scheme 7 of 14: Pradhan Mantri Jeevan Jyoti Bima Yojana (PMJJBY) ----
         "slug": "pmjjby",
         "scheme_name": "Pradhan Mantri Jeevan Jyoti Bima Yojana (PMJJBY)",
         "ministry": "Ministry of Finance",
@@ -228,6 +257,7 @@ SCHEMES = [
         },
     },
     {
+        # ---- Scheme 8 of 14: Pradhan Mantri Suraksha Bima Yojana (PMSBY) ----
         "slug": "pmsby",
         "scheme_name": "Pradhan Mantri Suraksha Bima Yojana (PMSBY)",
         "ministry": "Ministry of Finance",
@@ -257,6 +287,7 @@ SCHEMES = [
         },
     },
     {
+        # ---- Scheme 9 of 14: Post Matric Scholarship for SC Students ----
         "slug": "post-matric-sc",
         "scheme_name": "Post Matric Scholarship for SC Students",
         "ministry": "Ministry of Social Justice & Empowerment",
@@ -291,6 +322,7 @@ SCHEMES = [
         },
     },
     {
+        # ---- Scheme 10 of 14: PM Vishwakarma ----
         "slug": "pm-vishwakarma",
         "scheme_name": "PM Vishwakarma",
         "ministry": "Ministry of Micro, Small & Medium Enterprises",
@@ -323,6 +355,7 @@ SCHEMES = [
         },
     },
     {
+        # ---- Scheme 11 of 14: Pradhan Mantri Mudra Yojana (PMMY) ----
         "slug": "mudra",
         "scheme_name": "Pradhan Mantri Mudra Yojana (PMMY)",
         "ministry": "Ministry of Finance",
@@ -354,6 +387,7 @@ SCHEMES = [
         },
     },
     {
+        # ---- Scheme 12 of 14: Stand-Up India ----
         "slug": "stand-up-india",
         "scheme_name": "Stand-Up India",
         "ministry": "Ministry of Finance",
@@ -388,6 +422,7 @@ SCHEMES = [
         },
     },
     {
+        # ---- Scheme 13 of 14: Pradhan Mantri Matru Vandana Yojana (PMMVY) ----
         "slug": "pmmvy",
         "scheme_name": "Pradhan Mantri Matru Vandana Yojana (PMMVY)",
         "ministry": "Ministry of Women & Child Development",
@@ -420,6 +455,7 @@ SCHEMES = [
         },
     },
     {
+        # ---- Scheme 14 of 14: Indira Gandhi National Old Age Pension Scheme (IGNOAPS) ----
         "slug": "ignoaps",
         "scheme_name": "Indira Gandhi National Old Age Pension Scheme (IGNOAPS)",
         "ministry": "Ministry of Rural Development",
@@ -456,6 +492,11 @@ SCHEMES = [
 #   annual_cash = money received every year, one_time = one-time support,
 #   cover = insurance / health cover, loan = maximum credit available,
 #   pension / in_kind / savings / scholarship = non-additive benefits (shown as text only)
+# EXTRA[slug] = Hindi name, Hindi summary, Hindi benefits, and `values`:
+# estimated benefit amounts as (type, amount in rupees, label). Types:
+#   annual_cash = money every year, one_time = paid once, cover = insurance/health cover,
+#   loan = maximum loan amount; in_kind, savings, pension, scholarship = listed by name, not added up.
+# These are added up on the results page ("Cash support per year", "Insurance and health cover").
 EXTRA = {
     "pm-kisan": dict(name_hi="प्रधानमंत्री किसान सम्मान निधि (पीएम-किसान)",
                      summary_hi="ज़मीन वाले किसान परिवारों को सीधे बैंक खाते में आय सहायता।",

@@ -1,13 +1,20 @@
 // Scheme directory: search, category filter, sort, "only mine", cards, side-by-side comparison.
+// FILE: js/views/schemes.js - the SCHEME DIRECTORY (#schemes).
+// Lists all schemes with search, category filter, sorting and "only schemes I qualify for", and lets the user
+// tick up to 3 schemes to compare side by side. Filtering happens in the browser (the list is small).
+
 import { state, hasProfile } from "../state.js";
 import { L, hi } from "../i18n.js";
 import * as api from "../api.js";
 import { $, $$, esc, icon, sectorIcon, sectorName, sShort, sName, sSummary, sBenefits, badge, table, openSheet, sheetClose, toast, valueLabel } from "../ui.js";
 import { openScheme } from "./detail.js";
 
+// statusOf(id): this user's status for a scheme from the last results (if any).
 const statusOf = (id) => state.match?.results.find((r) => r.scheme_id === id)?.status;
+// Sort order for 'best fit': likely, then needs answers, then not eligible, then unknown.
 const RANK = { likely: 0, check: 1, not_eligible: 2, undefined: 3 };
 
+// filtered(all): apply category, search text (English and Hindi fields), 'only mine' and the chosen sort order.
 function filtered(all) {
   const q = state.dir.q.trim().toLowerCase();
   let list = all.filter((s) => !state.dir.sector || s.sector === state.dir.sector);
@@ -19,6 +26,7 @@ function filtered(all) {
   return list;
 }
 
+// card(s): one scheme card - category, ministry, name, headline benefit, summary, status badge, compare tick box, Details.
 function card(s) {
   const st = statusOf(s.scheme_id);
   return `<article class="card sc">
@@ -33,6 +41,7 @@ function card(s) {
     </div></article>`;
 }
 
+// renderList(all): draw the filtered cards and the 'Showing X of Y' count; compare ticks are limited to 3.
 function renderList(all) {
   const list = filtered(all);
   $("#dir-count").textContent = L("showing", { n: list.length, m: all.length });
@@ -48,6 +57,7 @@ function renderList(all) {
   compareBar();
 }
 
+// compareBar(): floating bar 'N selected - Compare' shown when 2-3 schemes are ticked (only on this page).
 function compareBar() {
   let bar = $("#compare-bar");
   const n = state.dir.compare.size;
@@ -61,8 +71,10 @@ function compareBar() {
   $("#cmp-clear").onclick = () => { state.dir.compare.clear(); renderSchemes(); };
   $("#cmp-go").onclick = openCompare;
 }
+// Remove the compare bar when leaving the directory.
 window.addEventListener("hashchange", () => { if (location.hash !== "#schemes") $("#compare-bar")?.remove(); });
 
+// openCompare(): load the ticked schemes' details and show a comparison table in the side panel (adds 'Your status' if known).
 async function openCompare() {
   const items = await Promise.all([...state.dir.compare].map((id) => api.scheme(id)));
   const rows = [
@@ -76,6 +88,8 @@ async function openCompare() {
   $("#sheet").style.width = "min(980px, 100%)";
 }
 
+// renderSchemes(): draw the page - category list with counts, 'only mine' switch (if results exist), search box
+// and sort menu. Search waits 150 ms after typing stops before filtering (debounce).
 export async function renderSchemes() {
   const root = $("#view-schemes");
   const [all, sectors] = await Promise.all([api.schemes(), api.sectors()]);

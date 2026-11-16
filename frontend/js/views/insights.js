@@ -1,13 +1,21 @@
 // Admin insights: filters, headline figures, demand chart, near misses, information gaps, users.
+// FILE: js/views/insights.js - the ADMIN INSIGHTS page (#insights).
+// Aggregate statistics from every saved profile (GET /api/insights): headline numbers, demand per scheme chart,
+// near misses (people missing a scheme by ONE condition), most-unanswered questions, occupation and area mix.
+// Filters (occupation, area, gender, scheme category) re-request the numbers from the server.
+// Every chart has a "table view" for screen readers and exact values; colours were checked for colour-blindness.
+
 import { state } from "../state.js";
 import { L, hi } from "../i18n.js";
 import * as api from "../api.js";
 import { $, $$, esc, inr, cLabel, sectorName, bindTooltips } from "../ui.js";
 import { CHOICES, fieldLabel } from "../profile.js";
 
+// pct(a, b): a as a percentage of b (for bar widths). opt(k, v): readable name of an option value.
 const pct = (a, b) => (b ? (a / b) * 100 : 0);
 const opt = (k, v) => { const o = (CHOICES[k] || []).find(([x]) => x === v); return o ? (o[1] ? L(o[1]) : o[0]) : v; };
 
+// demandChart(d): horizontal bars per scheme - likely eligible + may qualify - with tooltips and a table view.
 function demandChart(d) {
   const max = Math.max(1, ...d.schemes.map((s) => s.likely + s.check));
   const short = (n) => n.split(" (")[0];
@@ -25,6 +33,7 @@ function demandChart(d) {
     </div></section>`;
 }
 
+// singleBars(...): a simple one-colour bar chart (used for occupations, areas, unanswered questions).
 function singleBars(title, sub, rows, color) {
   const max = Math.max(1, ...rows.map((r) => r.n));
   return `<section class="card"><div class="card-head"><div><h2>${title}</h2>${sub ? `<p>${sub}</p>` : ""}</div></div>
@@ -34,6 +43,7 @@ function singleBars(title, sub, rows, color) {
       : `<p class="small muted">${L("no_data")}</p>`}</div></section>`;
 }
 
+// renderInsights(): load the statistics for the current filters and draw the filter bar, headline figures and charts.
 export async function renderInsights() {
   const root = $("#view-insights");
   const f = state.ins;
@@ -78,6 +88,7 @@ export async function renderInsights() {
   </div>`;
 
   bindTooltips(root);
+  // Changing a filter reloads the statistics; Reset clears all filters.
   $$("#ins-form select").forEach((s) => s.addEventListener("change", () => { state.ins[s.id.slice(4)] = s.value; renderInsights(); }));
   $("#ins-form").addEventListener("reset", () => { setTimeout(() => { state.ins = { occupation: "", area: "", gender: "", sector: "" }; renderInsights(); }); });
 }

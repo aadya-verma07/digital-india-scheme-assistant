@@ -1,15 +1,23 @@
 // Scheme detail side sheet: eligibility for this citizen, benefits, documents checklist, how to apply, official links.
+// FILE: js/views/detail.js - the SCHEME DETAIL side panel (opens from any page when you click "Details").
+// Shows the verdict for this citizen, benefits, who it's for, conditions (with alternative routes), a document
+// checklist with progress, application steps, official links and helpline, and an "Ask the assistant" button.
+
 import { state, hasProfile } from "../state.js";
 import { L, hi } from "../i18n.js";
 import * as api from "../api.js";
 import { $$, esc, icon, sectorIcon, sectorName, sName, sSummary, sBenefits, badge, conditionList, openSheet, closeSheet, sheetClose, valueLabel } from "../ui.js";
 import { sendToAssistant } from "./ask.js";
 
+// openScheme(id): load the scheme's full details and - if the user has answered anything - their verdict for it
+// (both requests run at the same time with Promise.all), then open the side panel.
 export async function openScheme(id) {
   const [s, ev] = await Promise.all([api.scheme(id), hasProfile() ? api.eligibility(id, state.profile) : Promise.resolve(null)]);
+  // Ticked documents are remembered per scheme in sessionStorage (until the tab is closed).
   const doneKey = `docs-${id}`;
   let done;
   try { done = new Set(JSON.parse(sessionStorage.getItem(doneKey) || "[]")); } catch { done = new Set(); }
+  // Application link (falls back to the official site), phone number for a tap-to-call link, and a short display form of URLs.
   const app = s.application || {};
   const applyUrl = app.apply_url || s.official_source;
   const tel = app.helpline ? app.helpline.split("/")[0].replace(/[^0-9+]/g, "") : "";
@@ -61,12 +69,14 @@ export async function openScheme(id) {
     sheet.querySelector("#doc-meter").style.width = `${(n / boxes.length) * 100}%`;
     sheet.querySelector("#doc-count").textContent = L("docs_b", { a: n, n: boxes.length });
   };
+  // Ticking a document updates the progress bar ('2 of 4 ready') and saves the ticks.
   $$("[data-doc]", sheet).forEach((b) => b.addEventListener("change", () => {
     b.checked ? done.add(Number(b.dataset.doc)) : done.delete(Number(b.dataset.doc));
     try { sessionStorage.setItem(doneKey, JSON.stringify([...done])); } catch {}
     update();
   }));
   update();
+  // 'Ask the assistant about this': close the panel and start a chat about this scheme.
   sheet.querySelector("#ask-about").addEventListener("click", () => {
     closeSheet();
     state.chat.scheme_id = id;

@@ -1,3 +1,20 @@
+# =====================================================================================
+# FILE: ai.py  -  THE AI ASSISTANT (chatbot "brain")
+# -------------------------------------------------------------------------------------
+# Called by POST /api/chat in main.py. The main function is answer() at the bottom; it runs
+# each message through this pipeline:
+#   1. detect_lang()        - reply in English or Hindi (Devanagari script or Hinglish words -> Hindi)
+#   2. detect_intent()      - what does the user want? (documents, apply, eligibility, benefits, compare...)
+#   3. named_schemes()      - which scheme(s) are mentioned? (aliases + fuzzy matching for typos)
+#   4. extract() / answer_for_field() (extract.py) - personal details in the message
+#   5. continue_interview() / ask() - ask ONLY the missing questions, one at a time
+#   6. retrieve()           - TF-IDF search to find the most relevant schemes
+#   7. evaluate() / match() (matching.py) - eligibility ALWAYS comes from the rule engine
+#   8. template_answer() or call_llm() - write the reply (templates on the live site; an LLM is optional)
+# No AI model is needed: on the live site LLM_PROVIDER is "none", so everything is rule-based.
+# The server keeps no memory: the browser sends the conversation state with every message.
+# =====================================================================================
+
 """AI-Based Assistance Module (6.6).
 
 A conversational agent built in layers:
@@ -27,22 +44,29 @@ from .i18n import DOC_HI, GENERAL_ORDER, QUESTIONS, SKIP_OPT, describe_update, f
 from .matching import evaluate, match, value_summary
 from .models import Scheme
 
+# OPTIONAL LLM SETTINGS (environment variables on Render or in .env):
+#   LLM_PROVIDER = gemini | openai | anthropic | none (default: none -> template answers)
+#   LLM_API_KEY  = the provider's API key;  LLM_MODEL = optional model name (otherwise DEFAULT_MODELS)
 LLM_PROVIDER = os.getenv("LLM_PROVIDER", "none").lower()   # gemini | openai | anthropic | none
 LLM_API_KEY = os.getenv("LLM_API_KEY", "")
 LLM_MODEL = os.getenv("LLM_MODEL", "")
 DEFAULT_MODELS = {"gemini": "gemini-2.5-flash", "openai": "gpt-4o-mini", "anthropic": "claude-haiku-5-5"}
 
 
+# llm_enabled(): True only if a provider AND an API key are set.
 def llm_enabled() -> bool:
     return LLM_PROVIDER != "none" and bool(LLM_API_KEY)
 
 
 # ------------------------------------------------------------------ language & intent
+# Common Hindi words written in English letters. 2 or more in a message -> it is Hinglish -> reply in Hindi.
 HINGLISH = {"kya", "mujhe", "mera", "meri", "mere", "kaise", "kaun", "kaunsi", "chahiye", "hai", "hain", "kitna",
             "milega", "milegi", "batao", "bataiye", "karna", "karu", "sakta", "sakti", "hoon", "hu", "kare", "liye",
             "ke", "ki", "ka", "aur", "nahi", "kaha", "kahan", "paisa", "yojna"}
 
 
+# detect_lang(text, preferred): "hi" or "en".
+# \u0900-\u097f is the Unicode range of Devanagari (Hindi) letters.
 def detect_lang(text: str, preferred: str | None = None) -> str:
     if re.search(r"[\u0900-\u097f]", text):
         return "hi"
@@ -54,6 +78,8 @@ def detect_lang(text: str, preferred: str | None = None) -> str:
     return "en"
 
 
+# INTENTS: (intent name, list of regular-expression patterns in English / Hinglish / Hindi).
+# Checked from top to bottom; the FIRST intent with a matching pattern wins, so the order matters.
 INTENTS = [
     ("greeting", [r"^\s*(hi|hii+|hello|hey|namaste|namaskar|नमस्ते|नमस्कार|good (morning|evening|afternoon))\b[\s!.]*$"]),
     ("thanks", [r"^\s*(thanks|thank you|thx|dhanyavad|dhanyawad|shukriya|धन्यवाद|शुक्रिया|ok thanks)\b"]),
@@ -71,6 +97,7 @@ INTENTS = [
 ]
 
 
+# detect_intent(q): return the first matching intent, or 'general' if none match.
 def detect_intent(q: str) -> str:
     ql = q.lower()
     for name, pats in INTENTS:
@@ -80,6 +107,7 @@ def detect_intent(q: str) -> str:
 
 
 # ------------------------------------------------------------------ scheme recognition & retrieval
+# ALIASES: every way people refer to each scheme (full names, short forms, Hindi names), keyed by the scheme's slug.
 ALIASES = {
     "pm-kisan": ["pm kisan", "pm-kisan", "pmkisan", "kisan samman", "samman nidhi", "किसान सम्मान", "पीएम किसान"],
     "pm-jay": ["ayushman", "ayushman bharat", "pmjay", "pm-jay", "pm jay", "jan arogya", "ayushman card", "golden card", "आयुष्मान"],
@@ -97,6 +125,7 @@ ALIASES = {
     "ignoaps": ["old age pension", "ignoaps", "vridha pension", "vridhavastha", "वृद्धावस्था पेंशन", "वृद्धा पेंशन"],
 }
 
+# STOP words: very common words ignored by the search (they appear everywhere, so they say nothing about a topic).
 STOP = set("""a an the is are am i me my we our you your to of for in on at by with and or what which how can do does
 did be it this that these those any some about from as was were will would should could there their them they he she
 his her get give tell please want need know scheme schemes yojana yojna pm pradhan mantri document documents required
@@ -104,6 +133,7 @@ benefit benefits apply application eligible eligibility qualify details informat
 yes no not ok okay sure haan nahi done right
 के की का में है हैं मैं मुझे क्या कौन से लिए और को पर यह वह हूँ कैसे करें योजना योजनाएँ मेरे मेरी""".split())
 
+# SYNONYMS: related words (English/Hinglish/Hindi) mapped to one root word, so 'kisan', 'खेती' and 'farming' all search for 'farmer'.
 SYNONYMS = {
     "farmer": ["kisan", "agriculture", "farming", "crop", "land", "किसान", "खेती"],
     "health": ["hospital", "treatment", "medical", "ayushman", "illness", "operation", "इलाज", "अस्पताल", "स्वास्थ्य", "बीमारी"],
@@ -119,6 +149,7 @@ SYNONYMS = {
 }
 
 
+# _tokens(text): split text into lowercase words, drop stop words, and add the root word for any synonym.
 def _tokens(text: str) -> list[str]:
     out = []
     for w in re.findall(r"[a-z0-9\u0900-\u097f]+", text.lower()):
@@ -131,6 +162,9 @@ def _tokens(text: str) -> list[str]:
     return out
 
 
+# named_schemes(question, schemes): schemes mentioned BY NAME, in the order they appear in the question.
+# 1st try: exact alias match.  2nd try (typos): difflib similarity >= 0.8 between a word and an alias,
+# e.g. "ujwala" ~ "ujjwala". Only for aliases of 5+ letters, to avoid false matches on short words.
 def named_schemes(question: str, schemes: list[Scheme]) -> list[Scheme]:
     """Schemes the user mentions by name, tolerant of typos ("ujwala", "ayushmaan", "vishvakarma")."""
     q = question.lower()
@@ -167,6 +201,7 @@ def named_schemes(question: str, schemes: list[Scheme]) -> list[Scheme]:
     return out
 
 
+# KEYWORDS: extra everyday words for each scheme, so a question like 'I need money for my shop' finds Mudra.
 KEYWORDS = {
     "mudra": "shop small business kirana tailoring boutique salon dhaba workshop micro loan self employed",
     "pm-vishwakarma": "tailor tailoring carpenter potter blacksmith cobbler weaver barber goldsmith mason toolkit craft",
@@ -185,15 +220,22 @@ KEYWORDS = {
 }
 
 
+# _scheme_text(s): all searchable text of a scheme (keywords, names, description, benefits, Hindi text, conditions).
 def _scheme_text(s: Scheme) -> str:
     return " ".join([KEYWORDS.get(s.slug, ""), s.scheme_name, s.slug.replace("-", " "), s.sector, s.description, s.target_beneficiaries,
                      s.benefits, s.name_hi or "", s.summary_hi or "", " ".join(c.label for c in s.criteria)])
 
 
+# retrieve(question, schemes, k, profile): TF-IDF search - returns the k most relevant (scheme, score) pairs.
+#   TF  (term frequency)          : how often the word appears in the scheme's text (square-rooted to damp repeats)
+#   IDF (inverse document freq.)  : log(1 + N / df) - a word found in few schemes counts more than a common one
+#   +20 if the scheme is named; x1.4 / x1.0 / x0.6 if the user is likely / maybe / not eligible (personalisation).
+# Schemes scoring under 40% of the best one are dropped.
 def retrieve(question: str, schemes: list[Scheme], k: int = 3, profile: dict | None = None) -> list[tuple[Scheme, float]]:
     docs = {s.scheme_id: _tokens(_scheme_text(s)) for s in schemes}
     n = len(schemes)
     df: dict[str, int] = {}
+    # df[word] = in how many schemes the word appears (document frequency).
     for toks in docs.values():
         for tok in set(toks):
             df[tok] = df.get(tok, 0) + 1
@@ -218,24 +260,30 @@ def retrieve(question: str, schemes: list[Scheme], k: int = 3, profile: dict | N
 
 
 # ------------------------------------------------------------------ helpers
+# Small helpers that build pieces of a reply:
+# sname(): scheme name in the reply language.
 def sname(s: Scheme, lang: str) -> str:
     return (s.name_hi or s.scheme_name) if lang == "hi" else s.scheme_name
 
 
+# short(): name without the bracketed abbreviation, e.g. 'Atal Pension Yojana'.
 def short(s: Scheme) -> str:
     return s.scheme_name.split(" (")[0]
 
 
+# card(): data for a scheme card shown under a chat answer (name, summary, status badge, headline value).
 def card(s: Scheme, status: str | None = None) -> dict:
     return {"scheme_id": s.scheme_id, "name": s.scheme_name, "name_hi": s.name_hi, "summary": s.description,
             "summary_hi": s.summary_hi, "status": status, "sector": s.sector,
             "value": s.values[0]["label"] if s.values else None}
 
 
+# source(): the official link shown under 'Sources'.
 def source(s: Scheme) -> dict:
     return {"scheme_id": s.scheme_id, "scheme_name": s.scheme_name, "official_source": s.official_source}
 
 
+# scheme_followups(): quick-reply buttons for the next natural questions (skipping the one just answered).
 def scheme_followups(s: Scheme, lang: str, skip: str) -> list[dict]:
     nm = short(s)
     opts = {
@@ -247,6 +295,7 @@ def scheme_followups(s: Scheme, lang: str, skip: str) -> list[dict]:
     return [{"label": lbl, "send": send} for key, (lbl, send) in opts.items() if key != skip]
 
 
+# value_parts(): benefit totals as readable phrases ('₹6,000 a year in cash support', ...).
 def value_parts(v: dict, lang: str) -> list[str]:
     hi = lang == "hi"
     parts = []
@@ -262,6 +311,9 @@ def value_parts(v: dict, lang: str) -> list[str]:
 
 
 # ------------------------------------------------------------------ LLM
+# SYSTEM_PROMPT: instructions given to the optional LLM. It may ONLY use the CONTEXT we send (retrieved scheme
+# records), must never claim official eligibility, and must answer in the user's language. This is RAG
+# (retrieval-augmented generation) and prevents the model from inventing rules or amounts.
 SYSTEM_PROMPT = """You are the Digital India Scheme Assistant, helping Indian citizens understand government schemes.
 Rules:
 - Answer ONLY from the CONTEXT. If the answer isn't there, say you don't have that information and point to the official website.
@@ -271,17 +323,22 @@ Rules:
 - Reply in {language}."""
 
 
+# call_llm(question, context, history, lang): send the question + scheme context to Gemini, OpenAI or Claude
+# over HTTPS (httpx) and return the text. temperature 0.2 = factual, little creativity.
+# Returns None if no LLM is configured OR anything goes wrong (no internet, bad key, quota) -> templates are used.
 async def call_llm(question: str, context: str, history: list[dict], lang: str) -> str | None:
     if not llm_enabled():
         return None
     model = LLM_MODEL or DEFAULT_MODELS.get(LLM_PROVIDER, "")
     system = SYSTEM_PROMPT.format(language="Hindi (Devanagari script)" if lang == "hi" else "English")
+    # Last 6 chat messages for context, then the new question with the scheme records attached.
     msgs = [{"role": h["role"], "content": h["content"]} for h in history[-6:] if h.get("content")]
     msgs.append({"role": "user", "content": f"CONTEXT:\n{context}\n\nQUESTION: {question}"})
     while msgs and msgs[0]["role"] != "user":   # providers expect the first turn to be the user's
         msgs.pop(0)
     try:
         async with httpx.AsyncClient(timeout=30) as client:
+            # Each provider has a slightly different API format:
             if LLM_PROVIDER == "gemini":
                 contents = [{"role": "model" if m["role"] == "assistant" else "user", "parts": [{"text": m["content"]}]} for m in msgs]
                 r = await client.post(f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent",
@@ -303,11 +360,14 @@ async def call_llm(question: str, context: str, history: list[dict], lang: str) 
                                       json={"model": model, "max_tokens": 700, "system": system, "messages": msgs})
                 r.raise_for_status()
                 return "".join(b.get("text", "") for b in r.json()["content"]).strip()
+    # Any failure: log it and fall back to the template answer (the chatbot never breaks).
     except Exception as e:  # network error, bad key, quota: fall back to template answer
         print(f"[ai] LLM call failed, using template answer: {e}")
     return None
 
 
+# context_for(s, profile): the text "record" of one scheme sent to the LLM - everything it may use,
+# plus the rule engine's verdict for this user (so the LLM explains the verdict instead of deciding it).
 def context_for(s: Scheme, profile: dict | None) -> str:
     app = s.application
     lines = [f"SCHEME: {s.scheme_name}", f"Hindi name: {s.name_hi}", f"Ministry: {s.ministry}",
@@ -324,12 +384,16 @@ def context_for(s: Scheme, profile: dict | None) -> str:
 
 
 # ------------------------------------------------------------------ response builders
+# new_response(lang, intent): the empty reply object. The browser draws each part:
+# answer text, sources, scheme cards, quick replies, comparison table, profile updates, interview state.
 def new_response(lang: str, intent: str) -> dict:
     return {"answer": "", "lang": lang, "intent": intent, "mode": "rules", "sources": [], "cards": [],
             "quick_replies": [], "pending_field": None, "interview": None, "profile_updates": {}, "noted": [],
             "table": None, "context_scheme_id": None, "show_results": False}
 
 
+# ask(resp, field, interview, lang, prefix): turn the reply into a QUESTION about `field`, with tap buttons + Skip.
+# Saves which field is pending and the interview state (incl. language) - the browser sends them back next time.
 def ask(resp: dict, field: str, interview: dict, lang: str, prefix: str = "") -> dict:
     q_en, q_hi, options = QUESTIONS[field]
     resp["answer"] = (prefix + "\n\n" if prefix else "") + (q_hi if lang == "hi" else q_en)
@@ -341,12 +405,15 @@ def ask(resp: dict, field: str, interview: dict, lang: str, prefix: str = "") ->
     return resp
 
 
+# condition_lines(): each condition with ✓ (met), ✗ (not met) or ? (unknown).
 def condition_lines(ev: dict, lang: str) -> str:
     marks = {"met": "✓", "not_met": "✗", "unknown": "?"}
     return "\n".join(f"{marks[c['result']]} {c['label_hi'] if lang == 'hi' and c.get('label_hi') else c['label']}"
                      for c in ev["conditions"])
 
 
+# verdict(resp, s, profile, lang): the final eligibility answer for one scheme, decided by matching.evaluate()
+# (never by the LLM): likely / may qualify / not eligible + every condition + official link.
 def verdict(resp: dict, s: Scheme, profile: dict, lang: str) -> dict:
     ev = evaluate(profile, s)
     key = {"likely": "verdict_likely", "check": "verdict_check", "not_eligible": "verdict_no"}[ev["status"]]
@@ -363,6 +430,8 @@ def verdict(resp: dict, s: Scheme, profile: dict, lang: str) -> dict:
     return resp
 
 
+# discover(resp, schemes, profile, lang): "Which schemes can I get?" - runs the rule engine on all schemes and
+# lists the likely ones with their benefits and the total value; mentions how many more need answers.
 def discover(resp: dict, schemes: list[Scheme], profile: dict, lang: str, prefix: str = "") -> dict:
     res = match(profile, schemes)
     likely = [r for r in res if r["status"] == "likely"]
@@ -396,6 +465,12 @@ def discover(resp: dict, schemes: list[Scheme], profile: dict, lang: str, prefix
     return resp
 
 
+# continue_interview(resp, interview, schemes, profile, lang): decide the NEXT question, or finish.
+# Three interview modes:
+#   "scheme"  - checking one scheme: ask its first unknown condition; when none are left -> verdict()
+#   "deep"    - ask the question that would settle the MOST "needs answers" schemes at once
+#   "general" - basic questions in GENERAL_ORDER; when all answered -> discover()
+# Skipped questions are remembered so they are not asked again.
 def continue_interview(resp: dict, interview: dict, schemes: list[Scheme], profile: dict, lang: str, prefix: str = "") -> dict:
     skipped = set(interview.get("skipped", []))
     if interview.get("mode") == "scheme":
@@ -429,6 +504,9 @@ def continue_interview(resp: dict, interview: dict, schemes: list[Scheme], profi
     return discover(resp, schemes, profile, lang, prefix)
 
 
+# template_answer(intent, s, lang, related): the reply when no LLM is used (the live site).
+# Fills a template from i18n.py with REAL data from the database, depending on the intent:
+# documents list / benefits / application steps + helpline / eligibility conditions (with OR routes) / general summary.
 def template_answer(intent: str, s: Scheme, lang: str, related: list[Scheme]) -> str:
     app = s.application
     nm = sname(s, lang)
@@ -465,6 +543,7 @@ def template_answer(intent: str, s: Scheme, lang: str, related: list[Scheme]) ->
     return body
 
 
+# compare_table(items, lang): rows x columns table comparing 2-3 schemes (benefits, who, conditions, documents, how to apply, website).
 def compare_table(items: list[Scheme], lang: str) -> dict:
     hi = lang == "hi"
     rows = [
@@ -479,6 +558,10 @@ def compare_table(items: list[Scheme], lang: str) -> dict:
 
 
 # ------------------------------------------------------------------ main entry point
+# answer(...): MAIN ENTRY POINT - one call per chat message. Returns the reply object (see new_response).
+# Parameters: message, all schemes, the user's profile, the scheme being discussed (focus_id), chat history,
+# the question the bot asked last (pending_field), a tapped button value (answer_value),
+# the interview state, and the website's language (lang_pref).
 async def answer(message: str, schemes: list[Scheme], profile: dict | None = None, focus_id: int | None = None,
                  history: list[dict] | None = None, pending_field: str | None = None, answer_value=None,
                  interview: dict | None = None, lang_pref: str | None = None) -> dict:
@@ -491,12 +574,15 @@ async def answer(message: str, schemes: list[Scheme], profile: dict | None = Non
         strong = re.search(r"[\u0900-\u097f]", message) or len(words & HINGLISH) >= 2
         if not strong and len(message.split()) <= 3:
             lang = interview["lang"]
+    # Keep only answered profile fields; detect the intent; start an empty reply.
     profile = {k: v for k, v in (profile or {}).items() if v not in (None, "")}
     by_id = {s.scheme_id: s for s in schemes}
     intent = detect_intent(message)
     resp = new_response(lang, intent)
 
     # 1. Understand: the answer to a pending question, plus any facts in free text
+    # STEP 1 - UNDERSTAND: first the answer to the pending question (tapped button or typed reply),
+    # then any other facts in the text. Scheme names are removed first so "PM Kisan" doesn't make the user a farmer.
     updates: dict = {}
     skipped_now, answered = None, False
     if pending_field:
@@ -515,6 +601,7 @@ async def answer(message: str, schemes: list[Scheme], profile: dict | None = Non
                 updates[k] = v
                 answered = answered or bool(pending_field)
 
+    # Apply the new facts and tell the browser about them (it updates the whole website).
     profile.update(updates)
     resp["profile_updates"] = updates
     resp["noted"] = [describe_update(k, v, lang) for k, v in updates.items()]
@@ -522,6 +609,8 @@ async def answer(message: str, schemes: list[Scheme], profile: dict | None = Non
     noted_line = (t("noted", lang) + " — " + ", ".join(resp["noted"]) + ".") if show_noted else ""
 
     # 2. Dialogue: continue an interview in progress
+    # STEP 2 - DIALOGUE: an interview is running. If the reply answered the question, move on to the next one.
+    # If it was not understood, ask again. If the user asked something else, drop the interview and handle that.
     if interview and pending_field:
         if answered:
             iv = {**interview, "skipped": sorted(set(interview.get("skipped", [])) | ({skipped_now} if skipped_now else set()))}
@@ -532,6 +621,7 @@ async def answer(message: str, schemes: list[Scheme], profile: dict | None = Non
         # otherwise the user changed topic: drop the interview and handle the new question
 
     # 3. Route by intent
+    # STEP 3 - ROUTE BY INTENT.
     named = named_schemes(message, schemes)
     if intent == "greeting":
         resp["answer"] = t("welcome", lang)
@@ -543,6 +633,7 @@ async def answer(message: str, schemes: list[Scheme], profile: dict | None = Non
         resp["answer"] = t("thanks", lang)
         return resp
 
+    # Compare: the schemes named (or found by search), 2 or 3 of them, shown as a table.
     if intent == "compare":
         items = named[:3]
         if len(items) < 2:
@@ -557,9 +648,12 @@ async def answer(message: str, schemes: list[Scheme], profile: dict | None = Non
         resp["sources"] = [source(s) for s in items]
         return resp
 
+    # 'Ask me the remaining questions' -> deep interview.
     if intent == "more":
         return continue_interview(resp, {"mode": "deep", "skipped": []}, schemes, profile, lang, t("more_intro", lang))
 
+    # 'Which schemes can I get?' - or the user described themselves (2+ facts, no scheme named):
+    # ask any missing basic questions first, then list the schemes.
     known = sum(profile.get(f) is not None for f in GENERAL_ORDER)
     described_self = len(updates) >= 2 and intent in ("general", "discover") and not named
     if intent == "discover" or described_self:
@@ -569,11 +663,14 @@ async def answer(message: str, schemes: list[Scheme], profile: dict | None = Non
         return continue_interview(resp, {"mode": "general", "skipped": []}, schemes, profile, lang, intro)
 
     # the scheme being talked about: named > retrieved > previous context (follow-up questions)
+    # Which scheme is this question about? A named scheme first, else the best search result, else - if the user
+    # refers back with "it/this/isme/इसके" - the scheme already being discussed (focus).
     hits = [s for s, _ in retrieve(message, schemes, profile=profile)]
     focus = by_id.get(focus_id) if focus_id else None
     refers_back = intent != "general" or re.search(r"\b(it|this|that|its|same|above|ye|yeh|is|isme)\b|इस|इसके|यह|उस", message.lower())
     target = named[0] if named else (hits[0] if hits else (focus if refers_back else None))
 
+    # Eligibility: ask for missing facts (interview) or give the verdict straight away.
     if intent == "eligibility":
         if not target:
             resp["answer"] = t("which_scheme", lang)
@@ -590,6 +687,7 @@ async def answer(message: str, schemes: list[Scheme], profile: dict | None = Non
             return out
         return verdict(resp, target, profile, lang)
 
+    # No scheme identified: ask which scheme; politely refuse off-topic questions (weather, cricket...).
     if not target and intent in ("documents", "apply", "benefits"):
         resp["answer"] = t("which_scheme", lang)
         resp["quick_replies"] = [{"label": t("q_all", lang), "send": "Which schemes can I apply for?"}]
@@ -601,6 +699,8 @@ async def answer(message: str, schemes: list[Scheme], profile: dict | None = Non
         resp["quick_replies"] = [{"label": t("q_all", lang), "send": "Which schemes can I apply for?"}]
         return resp
 
+    # STEP 4 - ANSWER: try the LLM with the retrieved records as context; if it returns nothing, use the template.
+    # Attach the scheme card, official source and follow-up buttons.
     related = [s for s in (named[1:] + hits) if s is not target][:2]
     ctx = "\n\n".join(context_for(s, profile) for s in [target] + related)
     text = await call_llm(message, ctx, history, lang)

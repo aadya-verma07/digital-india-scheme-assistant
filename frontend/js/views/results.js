@@ -1,4 +1,10 @@
 // Results dashboard: summary figures, tabs by status, expandable conditions, missing info, documents, report.
+// FILE: js/views/results.js - the RESULTS DASHBOARD (#results).
+// Shows: headline numbers (schemes you qualify for, cash per year, insurance cover), tabs for
+// Eligible / Needs answers / Not eligible, an expandable explanation for every scheme, the profile summary,
+// missing information, the combined document checklist, and a printable report.
+// All numbers come from POST /api/match (the rule engine) - nothing is calculated differently here.
+
 import { state, hasProfile, setProfile } from "../state.js";
 import { L, hi } from "../i18n.js";
 import * as api from "../api.js";
@@ -9,8 +15,10 @@ import { openScheme } from "./detail.js";
 import { editField } from "./check.js";
 import { sendToAssistant } from "./ask.js";
 
+// The three tabs: [status from the engine, text key].
 const TABS = [["likely", "tab_likely"], ["check", "tab_check"], ["not_eligible", "tab_not"]];
 
+// schemeRow(r): one scheme in the list - name, status badge, condition strip, headline benefit, and an expandable list of every condition.
 function schemeRow(r) {
   const open = state.results.open.has(r.scheme_id);
   const failed = r.conditions.filter((c) => c.result === "not_met");
@@ -36,6 +44,7 @@ function schemeRow(r) {
   </article>`;
 }
 
+// kpis(m): the three headline figures at the top (number likely, cash per year, insurance/health cover).
 function kpis(m) {
   const v = m.value;
   const tiles = [`<div class="kpi"><div class="label">${L("k_eligible")}</div><div class="val teal">${m.counts.likely}</div>
@@ -47,6 +56,7 @@ function kpis(m) {
   return `<div class="kpis">${tiles.join("")}</div>`;
 }
 
+// missingCard(m): unanswered questions that would decide 'Needs answers' schemes, most useful first, each with an Answer link.
 function missingCard(m) {
   const fields = {};
   m.results.filter((r) => r.status === "check").forEach((r) => r.conditions.forEach((c) => {
@@ -59,6 +69,7 @@ function missingCard(m) {
       <button type="button" class="btn btn-secondary btn-sm" data-answer="${f}">${L("answer")}</button></li>`).join("")}</ul></div></section>`;
 }
 
+// docsCard(m): the combined document checklist from the server (each document once, with the schemes needing it).
 function docsCard(m) {
   if (!m.documents.length) return "";
   let done;
@@ -70,6 +81,7 @@ function docsCard(m) {
       <div class="meter" aria-hidden="true"><i id="plan-meter" style="width:${(n / m.documents.length) * 100}%"></i></div></div></section>`;
 }
 
+// profileCard(): 'Your details' - chips of every answer given, with Edit answers / Start over.
 function profileCard() {
   const p = state.profile;
   const facts = FACT_ORDER.filter((k) => p[k] !== undefined).map((k) => `<span class="tag ${p[k] === false ? "no" : ""}">${esc(factText(k, p[k]))}</span>`).join("");
@@ -79,6 +91,8 @@ function profileCard() {
       <button type="button" class="btn-link small" id="start-over" style="margin-top:1rem">${L("start_over")}</button></div></section>`;
 }
 
+// renderResults(): draw the page. With no answers yet it shows an empty state that links to the checker.
+// If results are missing (e.g. after a page refresh), it asks the server again first.
 export async function renderResults() {
   const root = $("#view-results");
   if (!hasProfile()) {
@@ -116,6 +130,7 @@ export async function renderResults() {
       <aside class="side">${profileCard()}${missingCard(m)}${docsCard(m)}</aside>
     </div></div>`;
 
+  // Tabs (clickable and arrow-key accessible), expand/collapse of conditions, and the action buttons:
   $$("[data-tab]", root).forEach((b) => b.addEventListener("click", () => { state.results.tab = b.dataset.tab; renderResults(); $(`#tab-${b.dataset.tab}`)?.focus(); }));
   $$(".tabs [role=tab]", root).forEach((b, i, all) => b.addEventListener("keydown", (e) => {
     if (e.key === "ArrowRight" || e.key === "ArrowLeft") { const n = all[(i + (e.key === "ArrowRight" ? 1 : all.length - 1)) % all.length]; n.click(); }
@@ -143,6 +158,9 @@ export async function renderResults() {
 }
 
 /* ---------------- printable / save-as-PDF report ---------------- */
+// printReport(): builds the personal report (details, likely schemes with conditions and steps, documents) in the
+// hidden #report area and opens the browser's print dialog - the user can print it or 'Save as PDF'.
+// The print styles in styles.css show only the report when printing.
 async function printReport() {
   const m = state.match; if (!m) return;
   const likely = m.results.filter((r) => r.status === "likely");

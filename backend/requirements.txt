@@ -1,3 +1,10 @@
+# Python packages the backend needs (installed with: pip install -r requirements.txt)
+#   fastapi        - web framework for the REST API
+#   uvicorn        - server that runs the FastAPI app
+#   sqlalchemy     - ORM: database tables as Python classes
+#   psycopg        - PostgreSQL driver (version 3)
+#   httpx          - HTTP client, used only to call the optional LLM
+#   python-dotenv  - reads settings from the .env file
 fastapi>=0.110
 uvicorn[standard]>=0.29
 sqlalchemy>=2.0

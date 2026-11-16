@@ -1,26 +1,32 @@
 # Render Blueprint: creates the web app + a free PostgreSQL database in one go.
 # Render dashboard -> New -> Blueprint -> pick this repo.
 services:
+  # The web service = our FastAPI app.
   - type: web
     name: digital-india-scheme-assistant
     runtime: python
     plan: free
+    # Commands run inside the backend folder: install packages, then start the server on the port Render gives ($PORT).
     rootDir: backend
     buildCommand: pip install -r requirements.txt
     startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    # Render calls this URL to check the app is alive before sending visitors to a new deploy.
     healthCheckPath: /api/health
     envVars:
       - key: PYTHON_VERSION
         value: 3.12.7
+      # The database address is copied automatically from the database below (never written in the code).
       - key: DATABASE_URL
         fromDatabase:
           name: scheme-assistant-db
           property: connectionString
+      # No LLM on the live site (template answers). sync: false = the API key is typed in the Render dashboard, not stored in GitHub.
       - key: LLM_PROVIDER
         value: none
       - key: LLM_API_KEY
         sync: false
 
+# The free managed PostgreSQL database (Render's free databases expire after 30 days).
 databases:
   - name: scheme-assistant-db
     plan: free

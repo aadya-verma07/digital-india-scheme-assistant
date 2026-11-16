@@ -1,12 +1,19 @@
 // Reusable UI building blocks: icons, badges, condition strips, money formatting, sheet, toast, tooltip.
+// FILE: js/ui.js - small reusable building blocks shared by all pages (so each looks and behaves the same everywhere).
+// Most functions return an HTML string that the pages insert into the screen.
+
 import { L, hi } from "./i18n.js";
 
+// $(selector) / $$(selector): shortcuts to find one / all elements on the page.
 export const $ = (s, el = document) => el.querySelector(s);
 export const $$ = (s, el = document) => [...el.querySelectorAll(s)];
+// esc(text): escape <, >, &, quotes so text from the server is shown as text, never run as HTML (prevents XSS).
 export const esc = (t) => String(t ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+// linkify(html): turn web addresses into clickable links that open in a new tab.
 export const linkify = (html) => html.replace(/(https?:\/\/[^\s<)]+)/g, '<a href="$1" target="_blank" rel="noopener">$1</a>');
 
 /* ---------------- icons (24px line icons) ---------------- */
+// ICONS: the SVG drawing for each icon name; icon(name) returns a ready <svg> element.
 const ICONS = {
   search: '<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>',
   mic: '<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/>',
@@ -31,6 +38,7 @@ const ICONS = {
 };
 export const icon = (name, cls = "i") => `<svg class="${cls}" viewBox="0 0 24 24" aria-hidden="true">${ICONS[name] || ""}</svg>`;
 
+// Which icon belongs to each scheme category.
 const SECTOR_ICONS = {
   "Agriculture": '<path d="M12 21v-8"/><path d="M12 13c0-4 3-7 7-7 0 4-3 7-7 7Z"/><path d="M12 15c0-3-2.5-5.5-6-5.5 0 3.5 2.5 5.5 6 5.5Z"/>',
   "Health": '<path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10Z"/><path d="M12 9v5M9.5 11.5h5"/>',
@@ -43,6 +51,7 @@ const SECTOR_ICONS = {
   "Employment & skills": '<path d="M14.5 6.5a3.5 3.5 0 0 0-4.8 4.3L4 16.5 7.5 20l5.7-5.7a3.5 3.5 0 0 0 4.3-4.8l-2.3 2.3-2.4-.6-.6-2.4 2.3-2.3Z"/>',
   "Business & credit": '<path d="M4 9h16l-1-4H5L4 9Z"/><path d="M5 9v11h14V9"/><path d="M9 13h6M10 16h4"/>',
 };
+// Hindi names of categories; sectorName() / sectorIcon() return the right name and icon for the current language.
 const SECTOR_HI = {
   "Agriculture": "कृषि", "Health": "स्वास्थ्य", "Housing": "आवास", "Social welfare": "समाज कल्याण", "Women & child": "महिला और बाल",
   "Pension": "पेंशन", "Insurance": "बीमा", "Education": "शिक्षा", "Employment & skills": "रोज़गार और कौशल", "Business & credit": "व्यवसाय और ऋण",
@@ -52,12 +61,14 @@ export const sectorIcon = (sector, size = "") =>
   `<span class="sicon ${size}" aria-hidden="true"><svg class="i" viewBox="0 0 24 24">${SECTOR_ICONS[sector] || '<circle cx="12" cy="12" r="7"/>'}</svg></span>`;
 
 /* ---------------- scheme text in the current language ---------------- */
+// Scheme text in the current language (Hindi if available): full name, short name, summary, benefits, condition label.
 export const sName = (s) => (hi() && s.name_hi) || s.scheme_name || s.name;
 export const sShort = (s) => (hi() && s.name_hi) ? s.name_hi : (s.scheme_name || s.name || "").split(" (")[0];
 export const sSummary = (s) => (hi() && s.summary_hi) || s.description || s.summary;
 export const sBenefits = (s) => (hi() && s.benefits_hi) || s.benefits;
 export const cLabel = (c) => (hi() && c.label_hi) || c.label;
 
+// Hindi versions of benefit labels; valueLabel(s) = the scheme's headline benefit (e.g. '₹6,000 a year').
 const VALUE_HI = {
   "₹6,000 a year": "₹6,000 प्रति वर्ष", "₹5 lakh health cover a year": "हर साल ₹5 लाख स्वास्थ्य कवर",
   "Up to ₹2.5 lakh housing assistance": "₹2.5 लाख तक आवास सहायता", "Free LPG connection": "मुफ़्त एलपीजी कनेक्शन",
@@ -72,11 +83,14 @@ const VALUE_HI = {
 export const valueLabel = (s) => { const l = s?.values?.[0]?.label; return l ? ((hi() && VALUE_HI[l]) || l) : ""; };
 
 /* ---------------- status & conditions ---------------- */
+// badge(status): the coloured status pill - Likely eligible / Needs answers / Not eligible.
 export const badge = (status) => status ? `<span class="badge badge-${status}"><span class="dot"></span>${L("st_" + status)}</span>` : "";
+// strip(conditions): the row of small coloured bars (one per condition: met / not met / unknown) shown on results.
 export function strip(conditions) {
   const met = conditions.filter((c) => c.result === "met").length;
   return `<span class="strip" role="img" aria-label="${met} / ${conditions.length}">${conditions.map((c) => `<i class="seg-bar ${c.result}"></i>`).join("")}</span>`;
 }
+// conditionSummary(r): short sentence such as 'Meets all 4 conditions' or '1 condition not met'.
 export function conditionSummary(r) {
   const n = r.conditions.length;
   const met = r.conditions.filter((c) => c.result === "met").length;
@@ -85,11 +99,13 @@ export function conditionSummary(r) {
   if (met < n) return L("meets_some", { a: met, n, u: n - met });
   return n === 1 ? L("meets_one") : L("meets_all", { n });
 }
+// conditionList(conds): list of conditions with a ✓, ✗ or ? mark each, used in result rows and the detail panel.
 export const MARK = { met: icon("check"), not_met: icon("x"), unknown: "?" };
 export const conditionList = (conds) => `<ul class="cond-list">${conds.map((c) =>
   `<li><span class="mark ${c.result}" aria-label="${c.result}">${MARK[c.result]}</span><span>${esc(cLabel(c))}${c.result === "unknown" ? `<span class="unk">· ${L("unk")}</span>` : ""}</span></li>`).join("")}</ul>`;
 
 /* ---------------- money ---------------- */
+// inr(n): money in Indian style - ₹1.5 lakh, ₹2 crore, ₹45,000.
 export function inr(n) {
   if (n >= 1e7) return `₹${+(n / 1e7).toFixed(2)} ${hi() ? "करोड़" : "crore"}`;
   if (n >= 1e5) return `₹${+(n / 1e5).toFixed(2)} ${hi() ? "लाख" : "lakh"}`;
@@ -97,6 +113,7 @@ export function inr(n) {
 }
 
 /* ---------------- toast ---------------- */
+// toast(msg): a small message that appears at the bottom for 2.8 seconds (e.g. 'Listening...').
 let toastT;
 export function toast(msg) {
   const t = $("#toast");
@@ -105,6 +122,8 @@ export function toast(msg) {
 }
 
 /* ---------------- side sheet (one at a time) ---------------- */
+// openSheet(html): open the side panel (scheme details / comparison) with the given content, lock page scrolling,
+// and move keyboard focus into it. closeSheet(): close it and put focus back where the user was (accessibility).
 let lastFocus = null;
 export function openSheet(html, { onClose } = {}) {
   const sheet = $("#sheet");
@@ -126,9 +145,11 @@ export function closeSheet() {
   sheet._onClose?.();
   if (lastFocus && document.contains(lastFocus)) lastFocus.focus();
 }
+// sheetClose(): the ✕ close button used at the top of every side panel.
 export const sheetClose = () => `<button class="icon-btn" data-close aria-label="${L("close")}">${icon("x")}</button>`;
 
 /* ---------------- tooltip for charts ---------------- */
+// bindTooltips(root): show a tooltip next to the mouse for chart bars that have a data-tip attribute.
 export function bindTooltips(root) {
   const tip = $("#tooltip");
   $$("[data-tip]", root).forEach((el) => {
@@ -142,6 +163,7 @@ export function bindTooltips(root) {
 }
 
 /* ---------------- tables ---------------- */
+// table(headers, rows): an accessible HTML table (used for scheme comparison and chart table views).
 export function table(headers, rows) {
   return `<div class="table-wrap"><table class="cmp"><thead><tr>${headers.map((h) => `<th scope="col">${esc(h)}</th>`).join("")}</tr></thead>
     <tbody>${rows.map((r) => `<tr><th scope="row">${esc(r[0])}</th>${r.slice(1).map((c) => `<td>${linkify(esc(c))}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;

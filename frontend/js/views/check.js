@@ -1,4 +1,8 @@
 // Multi-step eligibility checker with progress, live match count and a review step.
+// FILE: js/views/check.js - the ELIGIBILITY CHECKER (#check): a 5-step form.
+// Steps: 1 about you, 2 where you live, 3 work/income/education/category, 4 household yes/no questions, 5 review.
+// Every answer is saved immediately (setProfile) and the "schemes so far" counter updates live.
+
 import { state, setProfile, hasProfile } from "../state.js";
 import { L, hi } from "../i18n.js";
 import * as api from "../api.js";
@@ -6,9 +10,11 @@ import { $, $$, esc, icon, inr, toast } from "../ui.js";
 import { STEPS, CHOICES, YES_NO, STATES, INCOME_PRESETS, SAMPLE, fieldLabel, fieldValue } from "../profile.js";
 import { go } from "../router.js";
 
+// Text key of each field's question.
 const FIELD_TITLE = { name: "f_name", age: "f_age", gender: "f_gender", state: "f_state", area: "f_area",
   occupation: "f_occupation", income: "f_income", education: "f_education", category: "f_category" };
 
+// choiceField(k): a question answered by picking one option (radio buttons styled as cards).
 function choiceField(k) {
   const v = state.profile[k];
   return `<fieldset class="field"><legend>${L(FIELD_TITLE[k])}</legend>
@@ -16,6 +22,7 @@ function choiceField(k) {
   </fieldset>`;
 }
 
+// renderField(k): the right input for each field - text (name), number (age), dropdown (state), amount + preset buttons (income), or options.
 function renderField(k) {
   const p = state.profile;
   if (k === "name") return `<div class="field"><label for="f-name">${L("f_name")} <span class="muted small">(${L("optional")})</span></label>
@@ -32,6 +39,7 @@ function renderField(k) {
   return "";
 }
 
+// renderHousehold(): step 4 - every yes/no question with Yes / No toggle buttons.
 function renderHousehold() {
   return `<div class="yn-list">${YES_NO.map(([k, q, h]) => `<div class="yn"><div><p id="q-${k}">${L(q)}</p>${h ? `<small>${L(h)}</small>` : ""}</div>
     <div class="seg" role="group" aria-labelledby="q-${k}">
@@ -40,6 +48,7 @@ function renderHousehold() {
     </div></div>`).join("")}</div>`;
 }
 
+// renderReview(): step 5 - all answers grouped by step, each group with an Edit button; unanswered ones are marked.
 function renderReview() {
   return `<div class="review">${STEPS.slice(0, 4).map((st, i) => `<section>
     <div class="rh"><h3>${L(st.title)}</h3><button type="button" class="btn btn-ghost btn-sm" data-goto="${i}">${icon("edit")}${L("edit")}</button></div>
@@ -48,12 +57,15 @@ function renderReview() {
   </section>`).join("")}</div>`;
 }
 
+// liveCount(): the side box 'X schemes so far' (+ how many need answers), from the latest match result.
 function liveCount() {
   const m = state.match;
   if (!m || !hasProfile()) return `<p class="lbl">${L("so_far")}</p><b>0</b><p>${L("live_likely")}</p>`;
   return `<p class="lbl">${L("so_far")}</p><b class="num">${m.counts.likely}</b><p>${L("live_likely")}</p>${m.counts.check ? `<p>${L("live_check", { n: m.counts.check })}</p>` : ""}`;
 }
 
+// refreshLive(): re-run the eligibility check 300 ms after the last change (so typing doesn't send a request
+// per key) and update the counter. save=false: these in-between checks are NOT stored in the database.
 let liveTimer;
 export function refreshLive() {
   clearTimeout(liveTimer);
@@ -65,6 +77,7 @@ export function refreshLive() {
   }, 300);
 }
 
+// renderCheck(): draw the current step - progress bar, the step's questions, the live counter and Back/Next buttons.
 export function renderCheck() {
   const root = $("#view-check");
   const step = state.check.step;
@@ -105,6 +118,7 @@ export function renderCheck() {
   refreshLive();
 }
 
+// goStep(i): move to step i (kept between 0 and 4), redraw, scroll up and move keyboard focus to the step title.
 function goStep(i) {
   state.check.step = Math.max(0, Math.min(STEPS.length - 1, i));
   renderCheck();
@@ -112,10 +126,12 @@ function goStep(i) {
   $("#step-title")?.focus({ preventScroll: true });
 }
 
+// bind(root): connect every button and input of the step to its action:
 function bind(root) {
   $$("[data-goto]", root).forEach((b) => b.addEventListener("click", () => goStep(Number(b.dataset.goto))));
   $("#prev")?.addEventListener("click", () => goStep(state.check.step - 1));
   $("#skip")?.addEventListener("click", () => goStep(state.check.step + 1));
+  // Next / Finish: on the last step, run the check with save=true (stored for Insights) and open the results.
   $("#step-form").addEventListener("submit", async (e) => {
     e.preventDefault();
     if (state.check.step < STEPS.length - 1) return goStep(state.check.step + 1);
@@ -123,10 +139,12 @@ function bind(root) {
     try { await api.runMatch({ save: true }); go("results"); }
     catch { toast(L("server_err")); btn.disabled = false; }
   });
+  // 'Use a sample profile' fills every answer (for demos); 'Clear answers' empties the profile.
   $("#use-sample")?.addEventListener("click", () => { setProfile(SAMPLE, { replace: true }); goStep(STEPS.length - 1); });
   $("#clear-all")?.addEventListener("click", () => { setProfile({}, { replace: true }); state.match = null; goStep(0); });
 
   // text & number & select inputs
+  // Typed answers (name, age, state, income) are saved as you type; numbers are converted from text.
   $$("[data-field]", root).forEach((el) => el.addEventListener("input", () => {
     const k = el.dataset.field;
     let v = el.value.trim();
@@ -138,6 +156,7 @@ function bind(root) {
     }
   }));
   // radio options
+  // Option cards, income presets and Yes/No buttons save their value immediately.
   $$(".option input", root).forEach((el) => el.addEventListener("change", () => setProfile({ [el.name]: el.value })));
   // income presets
   $$("[data-income]", root).forEach((c) => c.addEventListener("click", () => {
@@ -156,6 +175,7 @@ function bind(root) {
 }
 
 /** Open the checker at the step that asks a given field. */
+// editField(field): used by 'Answer' / 'Edit' links elsewhere - opens the checker at the step that asks that field.
 export function editField(field) {
   const i = STEPS.findIndex((s) => s.fields.includes(field));
   state.check.step = i < 0 ? 0 : i;

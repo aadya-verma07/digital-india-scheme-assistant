@@ -1,4 +1,8 @@
 // Homepage: hero with AI search, categories, featured schemes, how it works, two paths.
+// FILE: js/views/home.js - the HOMEPAGE (#home).
+// Main feature: ONE search box for everything. A description of yourself goes to your results;
+// a question goes to the AI assistant. Also shows categories, featured schemes, "how it works" and two start paths.
+
 import { state, setProfile } from "../state.js";
 import { L } from "../i18n.js";
 import * as api from "../api.js";
@@ -9,10 +13,17 @@ import { go } from "../router.js";
 import { openScheme } from "./detail.js";
 import { sendToAssistant } from "./ask.js";
 
+// The four schemes shown in the 'Featured' section (by slug).
 const FEATURED = ["pm-kisan", "pm-jay", "atal-pension", "mudra"];
+// Pattern that recognises a QUESTION (ends with ?, or starts with what/how/kya/kaise/क्या ...).
 const QUESTION = /\?|^(what|how|which|who|where|when|why|is|are|can|does|do|tell|explain|compare|क्या|कैसे|कौन|कहाँ|कब|क्यों|बताइए|बताओ)\b|kya |kaise |kaun /i;
 
 /** One search box for everything: descriptions fill the profile and open results; questions go to the assistant. */
+// smartSearch(text): what happens when the user presses Search (or speaks).
+// 1. Send the text to /api/extract to find profile details.
+// 2. No details found (or just one detail in a question)  -> it's a question: open the assistant with it.
+// 3. Otherwise -> save the details as the profile, run the eligibility check (and save the profile for
+//    Insights: save=true), then open the results page.
 export async function smartSearch(text) {
   text = text.trim();
   const status = $("#ai-status");
@@ -35,6 +46,8 @@ export async function smartSearch(text) {
   }
 }
 
+// renderHome(): draw the homepage. Loads the scheme and category lists (cached), counts schemes per category,
+// and keeps any text already typed in the search box when redrawing (e.g. after switching language).
 export async function renderHome() {
   const root = $("#view-home");
   const [schemes, sectors] = await Promise.all([api.schemes(), api.sectors()]).catch(() => [[], []]);
@@ -112,6 +125,9 @@ export async function renderHome() {
     </section>
   </div>`;
 
+  // Event handlers: Search button / Enter key -> smartSearch; mic -> voice input (text appears while speaking,
+  // search runs when you stop); example chips fill the box and search; a category opens the directory filtered
+  // to it; "Details" opens the scheme panel.
   const input = $("#ai-input");
   $("#ai-form").addEventListener("submit", (e) => { e.preventDefault(); smartSearch(input.value); });
   input.addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); smartSearch(input.value); } });

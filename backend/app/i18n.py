@@ -1,10 +1,30 @@
+# =====================================================================================
+# FILE: i18n.py  -  all the chatbot's words, in English AND Hindi ("i18n" = internationalisation)
+# -------------------------------------------------------------------------------------
+# Keeping text separate from logic means the chatbot code (ai.py) never contains sentences;
+# it asks for a text by key and language, e.g. t("welcome", "hi").
+# Contents:
+#   QUESTIONS       - each interview question in EN + HI, with its tap-button answers
+#   GENERAL_ORDER   - which questions to ask first when finding all schemes
+#   FIELD_NAMES / VALUE_NAMES - readable names for fields and values ("has_lpg" -> "LPG connection")
+#   fmt_inr()       - money in Indian style: 150000 -> "₹1.5 lakh", 45000 -> "₹45,000"
+#   describe_update() - "age: 45" / "उम्र: 45" (shown as "I've noted ...")
+#   label_hi()      - writes the Hindi version of an eligibility condition from the rule itself
+#   DOC_HI          - Hindi names of documents
+#   T + t()         - every reply template, and the function that picks EN or HI and fills in {placeholders}
+# =====================================================================================
+
 """English / Hindi text used by the assistant: interview questions, quick-reply options,
 condition labels and response templates."""
 import re
 
+# Standard Yes / No buttons, and the Skip button added to every question.
 YN = [{"label": "Yes", "label_hi": "हाँ", "value": True}, {"label": "No", "label_hi": "नहीं", "value": False}]
 SKIP_OPT = {"label": "Skip", "label_hi": "छोड़ें", "value": "__skip__"}
 
+# QUESTIONS[field] = (question in English, question in Hindi, list of tap-button options).
+# Each option's "value" is what gets saved in the profile. For ranges (age, income) the value is a
+# typical number inside that range, e.g. "18-40" saves age 30, which is enough for the eligibility rules.
 QUESTIONS = {
     "age": ("How old are you?", "आपकी उम्र कितनी है?", [
         {"label": "Under 18", "label_hi": "18 से कम", "value": 16},
@@ -58,6 +78,7 @@ QUESTIONS = {
 # order used when the assistant interviews someone from scratch
 GENERAL_ORDER = ["age", "gender", "occupation", "income", "area", "bpl", "has_bank_account", "income_tax_payer"]
 
+# Human-readable (English, Hindi) names of profile fields.
 FIELD_NAMES = {
     "age": ("age", "उम्र"), "gender": ("gender", "लिंग"), "occupation": ("work", "काम"),
     "income": ("family income", "पारिवारिक आय"), "area": ("area", "क्षेत्र"), "state": ("state", "राज्य"),
@@ -68,6 +89,7 @@ FIELD_NAMES = {
     "pregnant_or_lactating": ("pregnant / new mother", "गर्भवती / नई माँ"),
 }
 
+# Human-readable (English, Hindi) names of stored values (e.g. 'rural' -> 'village' / 'गाँव').
 VALUE_NAMES = {
     "female": ("woman", "महिला"), "male": ("man", "पुरुष"), "other": ("other", "अन्य"),
     "rural": ("village", "गाँव"), "urban": ("town/city", "शहर"),
@@ -79,6 +101,7 @@ VALUE_NAMES = {
 }
 
 
+# fmt_inr(n): format rupees the Indian way - crore, lakh, or digits grouped as 12,34,567.
 def fmt_inr(n: int) -> str:
     if n >= 10000000:
         v = n / 10000000
@@ -94,6 +117,7 @@ def fmt_inr(n: int) -> str:
     return "₹" + s
 
 
+# describe_update(field, value, lang): one short 'field: value' text in the chosen language.
 def describe_update(field: str, value, lang: str) -> str:
     i = 1 if lang == "hi" else 0
     name = FIELD_NAMES.get(field, (field, field))[i]
@@ -108,6 +132,9 @@ def describe_update(field: str, value, lang: str) -> str:
     return f"{name}: {v}"
 
 
+# label_hi(field, op, value): build the Hindi sentence for a condition, e.g.
+# age between [18, 40] -> "आपकी उम्र 18 से 40 वर्ष के बीच है". Used by matching.py so every
+# condition is shown in Hindi without storing a second label in the database.
 def label_hi(field: str, op: str, value) -> str:
     """Hindi version of an eligibility condition, generated from the rule itself."""
     if field == "age":
@@ -138,6 +165,7 @@ def label_hi(field: str, op: str, value) -> str:
         return "आप अपना व्यवसाय चलाते हैं या शुरू करना चाहते हैं"
     if field == "education":
         return "आप कक्षा 11 या उससे ऊपर पढ़ रहे हैं"
+    # For yes/no fields: (sentence if the rule expects yes, sentence if it expects no).
     bool_labels = {
         "bpl": ("आपका परिवार गरीबी रेखा से नीचे (बीपीएल) है", "आपका परिवार बीपीएल नहीं है"),
         "has_bank_account": ("आपका बैंक खाता है", "आपका बैंक खाता नहीं है"),
@@ -153,6 +181,7 @@ def label_hi(field: str, op: str, value) -> str:
     return ""
 
 
+# English document name -> Hindi name (used when the chatbot lists documents in Hindi).
 DOC_HI = {
     "Aadhaar card": "आधार कार्ड", "Land ownership records": "ज़मीन के कागज़ (खतौनी)", "Bank account details": "बैंक खाते का विवरण",
     "Mobile number": "मोबाइल नंबर", "Ration card or PM letter": "राशन कार्ड या पीएम पत्र", "Income certificate": "आय प्रमाण पत्र",
@@ -167,6 +196,8 @@ DOC_HI = {
     "Birth registration": "बच्चे का जन्म पंजीकरण", "Age proof": "उम्र का प्रमाण", "BPL card": "बीपीएल कार्ड",
 }
 
+# T[key] = (English text, Hindi text). {name}, {n}, {mode}, {parts} are placeholders filled in by t().
+# Every reply the chatbot gives in template mode is built from these.
 T = {
     "welcome": ("Namaste! I can find schemes for you, check if you qualify, list documents, and explain how to apply. You can type or speak, in English or Hindi.",
                 "नमस्ते! मैं आपके लिए योजनाएँ ढूँढ सकता हूँ, पात्रता जाँच सकता हूँ, ज़रूरी दस्तावेज़ बता सकता हूँ और आवेदन का तरीका समझा सकता हूँ। आप हिंदी या अंग्रेज़ी में लिखकर या बोलकर पूछ सकते हैं।"),
@@ -218,6 +249,7 @@ T = {
 }
 
 
+# t(key, lang, **kw): return the text for `key` in Hindi if lang == 'hi', else English, with placeholders filled.
 def t(key: str, lang: str, **kw) -> str:
     s = T[key][1 if lang == "hi" else 0]
     return s.format(**kw) if kw else s

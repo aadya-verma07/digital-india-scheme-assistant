@@ -1,6 +1,11 @@
 // All interface text in English and Hindi. L(key, vars) returns the string for the current language.
+// FILE: js/i18n.js - every text shown on the website, in English and Hindi.
+// S[key] = [English, Hindi]. Pages never contain fixed text; they call L("key"), so switching language
+// redraws the same page in the other language.
+
 import { state } from "./state.js";
 
+// The dictionary of all interface texts. {n}, {name}... are placeholders filled in by L().
 const S = {
   // shell
   skip: ["Skip to content", "मुख्य सामग्री पर जाएँ"],
@@ -161,12 +166,16 @@ const S = {
   report_title: ["My Government Scheme Report", "मेरी सरकारी योजना रिपोर्ट"], your_details: ["Your details", "आपकी जानकारी"], est_value: ["Estimated value", "अनुमानित लाभ"],
 };
 
+// hi(): true when the site is in Hindi.
 export const hi = () => state.lang === "hi";
+// L(key, vars): the text for `key` in the current language, with {placeholders} replaced. Unknown keys show the key itself.
 export function L(key, vars = {}) {
   let s = (S[key] || [key, key])[hi() ? 1 : 0];
   for (const [k, v] of Object.entries(vars)) s = s.split(`{${k}}`).join(v);
   return s;
 }
+// applyStaticText(): translate the fixed parts of index.html - every element with data-i18n="key" (text)
+// or data-i18n-ph="key" (placeholder) - and set <html lang> so screen readers use the right pronunciation.
 export function applyStaticText(root = document) {
   root.querySelectorAll("[data-i18n]").forEach((el) => (el.textContent = L(el.dataset.i18n)));
   root.querySelectorAll("[data-i18n-ph]").forEach((el) => (el.placeholder = L(el.dataset.i18nPh)));

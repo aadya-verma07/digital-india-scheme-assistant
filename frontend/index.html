@@ -1,17 +1,27 @@
 <!DOCTYPE html>
+<!-- FILE: index.html - the ONLY HTML page of the website (single-page application).
+     It contains the fixed frame: header with menu and language switch, six empty <section>s (one per page),
+     footer, and shared pieces (side panel, tooltip, toast, print area). JavaScript (js/app.js) fills the
+     sections; the router shows one at a time. Texts marked data-i18n="key" are translated by js/i18n.js.
+-->
+
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <!-- viewport: makes the layout fit phone screens instead of showing a zoomed-out desktop page. -->
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#163a5f" />
   <title>Scheme Assistant · Digital India</title>
+  <!-- Start downloading the main font early so text appears in the right font quickly; then load all styles. -->
   <link rel="preload" href="/static/fonts/manrope-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="stylesheet" href="/static/styles.css" />
 </head>
 <body>
+  <!-- Accessibility: keyboard users can jump straight to the content. Below it, the tricolour band at the top. -->
   <a class="skip-link" href="#main" data-i18n="skip">Skip to content</a>
   <div class="tricolour" aria-hidden="true"><i></i><i></i><i></i></div>
 
+  <!-- HEADER: logo (Ashoka Chakra spokes are drawn by app.js), main menu (links change #page), EN/हिं switch, button, mobile menu. -->
   <header class="site-header">
     <div class="container bar">
       <a class="logo" href="#home" aria-label="Scheme Assistant home">
@@ -39,6 +49,7 @@
     </div>
   </header>
 
+  <!-- PAGES: one empty section per page; js/router.js shows the one named in the URL (#home, #check, ...) and hides the rest. -->
   <main id="main" tabindex="-1">
     <section id="view-home" class="view" aria-labelledby="home-title"></section>
     <section id="view-check" class="view" hidden></section>
@@ -48,6 +59,7 @@
     <section id="view-insights" class="view" hidden></section>
   </main>
 
+  <!-- FOOTER: disclaimer and links (API documentation at /docs, official myScheme portal). -->
   <footer class="site-footer">
     <div class="container">
       <p data-i18n="footer">Academic prototype, Minor Project, Department of ECE, MAIT. Guidance only: final eligibility is decided by the issuing authority, so always confirm on the official website before applying.</p>
@@ -60,12 +72,16 @@
     </div>
   </footer>
 
+  <!-- Shared elements used by all pages: dark backdrop + side panel (scheme details, comparison), chart tooltip,
+       toast messages (role=status so screen readers announce them), and the hidden area used to print the report.
+  -->
   <div id="backdrop" class="backdrop" hidden></div>
   <aside id="sheet" class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title" hidden></aside>
   <div id="tooltip" class="tooltip" role="tooltip" hidden></div>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <section id="report" class="report" aria-hidden="true"></section>
 
+  <!-- Load the website's JavaScript (ES module: app.js imports all other files). -->
   <script type="module" src="/static/js/app.js"></script>
 </body>
 </html>
